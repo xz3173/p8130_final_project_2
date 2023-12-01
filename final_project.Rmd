@@ -3,3 +3,10 @@ title: "Final Project"
 output: github_document
 ---
 
+```{r}
+library(tidyverse)
+```
+
+```{r}
+data = read_csv("./data/data.csv")
+```
