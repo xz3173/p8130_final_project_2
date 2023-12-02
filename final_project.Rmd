@@ -36,8 +36,8 @@ str(data_1)
 
 #Figure 1 
 ```{r}
-proj2 %>%
-tbl_summary(by="Status",
+data_1 %>%
+tbl_summary(by="status",
   missing_text = "(Missing)", # counts missing values
   statistic = list(all_continuous() ~ "mean={mean} (min={min}, max={max}, sd={sd})",
                    all_categorical() ~ "n={n} (p={p}%)") # stats for categorical
