@@ -8,6 +8,7 @@ library(gtsummary)
 library(tidyverse)
 library(car)
 library(caret)
+library(corrplot)
 ```
 
 ```{r}
@@ -39,11 +40,6 @@ clean_data = data |>
     estrogen_status = as.numeric(factor(estrogen_status, levels = c("Negative", "Positive"))) - 1,
     progesterone_status = as.numeric(factor(progesterone_status, levels = c("Negative", "Positive"))) - 1,
     status = as.numeric(factor(status, levels = c("Dead", "Alive"))) - 1)
-
-summary(data_1)
-str(data_1)
-
-colSums(is.na(data_1))
 ```
 
 
@@ -59,28 +55,39 @@ tbl_summary(by="status",
   ) |>
 bold_labels()  |>
 italicize_levels()
+
 ```
 
 #Find correlation
 ```{R}
+
+corplot=cor(clean_data)
+corrplot(corplot)
+#tumor_size vs t_stage = 0.801
+#grade=differentiate =>1
+#n_stage = x6th_stage => 0.881
+#n_stage = regional positive statu =>0.838073333
+selected_data <- clean_data %>% select(-tumor_size, -grade,-n_stage,-reginol_node_positive,-x6th_stage)
+
+corplot=cor(selected_data)
+corrplot(corplot)
 ```
 
 #Model fitting
 ```{R}
-null_model = glm(status ~ 1, family = binomial(link = "logit"), data = clean_data)
+null_model = glm(status ~ 1, family = binomial(link = "logit"), data = selected_data)
 
-model = glm(status ~ (age * race * marital_status + t_stage + n_stage + x6th_stage + differentiate + grade + a_stage + tumor_size + estrogen_status + progesterone_status + regional_node_examined + reginol_node_positive),
-             family = binomial(link = "logit"), data = clean_data)
+model = glm(status ~ (. +age * race * marital_status -survival_months ),
+             family = binomial(link = "logit"), data = selected_data)
 
-
-model = glm(status ~ (age * race * marital_status + t_stage + n_stage + x6th_stage + grade + a_stage + tumor_size  + regional_node_examined + reginol_node_positive),
-             family = binomial(link = "logit"), data = clean_data)
-
-
-step_model = step(null_model, scope = list(lower = null_model, upper = model), 
+step_modelF = step(null_model, scope = list(lower = null_model, upper = model), 
                    direction = "forward")
 
 step_model = step(model, direction = "backward")
+summary(step_model)
+summary(model)
+summary(step_modelF)
+shapiro step_modelF$residuals
 ```
 
 
