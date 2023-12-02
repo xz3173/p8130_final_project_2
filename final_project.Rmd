@@ -12,7 +12,8 @@ library(caret)
 ```
 ```{r}
 
-data = read.csv("./data/data.csv")
+data = read_csv("./data/data.csv") |>
+  janitor::clean_names()
 # Check for missing data
 colSums(is.na(data))
 # Convert character to factor for regression analysis
