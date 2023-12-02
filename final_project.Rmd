@@ -9,6 +9,27 @@ library(tidyverse)
 library(car)
 library(caret)
 library(corrplot)
+
+
+
+knitr::opts_chunk$set(
+	echo = TRUE,
+	warning = FALSE,
+	fig.width = 8, 
+  fig.height = 6,
+  out.width = "90%"
+)
+
+options(
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis"
+)
+
+scale_colour_discrete = scale_colour_viridis_d
+scale_fill_discrete = scale_fill_viridis_d
+
+theme_set(theme_minimal() + theme(legend.position = "bottom"))
+
 ```
 
 ```{r}
@@ -39,7 +60,13 @@ clean_data = data |>
     a_stage = as.numeric(factor(a_stage, levels = c("Regional", "Distant"))) - 1,
     estrogen_status = as.numeric(factor(estrogen_status, levels = c("Negative", "Positive"))) - 1,
     progesterone_status = as.numeric(factor(progesterone_status, levels = c("Negative", "Positive"))) - 1,
-    status = as.numeric(factor(status, levels = c("Dead", "Alive"))) - 1)
+    status = as.numeric(factor(status, levels = c("Dead", "Alive"))) - 1)|>
+  rename(regional_node_positive = reginol_node_positive)
+
+summary(clean_data)
+str(clean_data)
+
+colSums(is.na(clean_data))
 ```
 
 
@@ -80,17 +107,87 @@ null_model = glm(status ~ 1, family = binomial(link = "logit"), data = selected_
 model = glm(status ~ (. +age * race * marital_status -survival_months ),
              family = binomial(link = "logit"), data = selected_data)
 
-step_modelF = step(null_model, scope = list(lower = null_model, upper = model), 
+step_modelF = step(null_model, scope = list(lower = null_model, upper = model))
+                   
+model = glm(status ~ (age * race * marital_status + t_stage + n_stage + x6th_stage + differentiate + grade + a_stage + tumor_size + estrogen_status + progesterone_status + regional_node_examined + regional_node_positive),
+             family = binomial(link = "logit"), data = clean_data)
+
+
+model = glm(status ~ (age * race * marital_status + t_stage + n_stage + x6th_stage + grade + a_stage + tumor_size  + regional_node_examined + regional_node_positive),
+             family = binomial(link = "logit"), data = clean_data)
+
+
+step_model = step(null_model, scope = list(lower = null_model, upper = model), 
                    direction = "forward")
 
 step_model = step(model, direction = "backward")
 summary(step_model)
 summary(model)
 summary(step_modelF)
-shapiro step_modelF$residuals
 ```
 
 
+```{r}
+# Use windows or quartz
+quartz(width = 12, height = 12)
+
+pairs(clean_data)
+```
+
+```{r}
+quartz(width = 12, height = 12)
+
+corrplot(cor(clean_data), type = "upper", diag = FALSE)
+```
 
 
+```{r}
+# Boxplots for each variable
+par(mar = c(2, 2, 2, 2))
+par(mfrow = c(4, 4))
+boxplot(clean_data$age, main = "age")
+boxplot(clean_data$race, main = "race")
+boxplot(clean_data$marital_status, main = "marital_status")
+boxplot(clean_data$t_stage, main = "t_stage")
+boxplot(clean_data$n_stage, main = "n_stage")
+boxplot(clean_data$x6th_stage, main = "x6th_stage")
+boxplot(clean_data$differentiate, main = "differentiate")
+boxplot(clean_data$grade, main = "grade")
+boxplot(clean_data$a_stage, main = "a_stage")
+boxplot(clean_data$tumor_size, main = "tumor_size")
+boxplot(clean_data$estrogen_status, main = "estrogen_status")
+boxplot(clean_data$progesterone_status, main = "progesterone_status")
+boxplot(clean_data$regional_node_examined, main = "regional_node_examined")
+boxplot(clean_data$regional_node_positive, main = "regional_node_positive")
+boxplot(clean_data$survival_months, main = "survival_months")
+boxplot(clean_data$status, main = "status")
+```
 
+
+```{r}
+# Fit regression using all predictors
+mult.fit = lm(survival_months ~., data = clean_data)
+summary(mult.fit)
+```
+
+```{r}
+# Histograms for each variable
+par(mar = c(2, 2, 2, 2))
+par(mfrow = c(4, 4))
+hist(clean_data$age, main = "age")
+hist(clean_data$race, main = "race")
+hist(clean_data$marital_status, main = "marital_status")
+hist(clean_data$t_stage, main = "t_stage")
+hist(clean_data$n_stage, main = "n_stage")
+hist(clean_data$x6th_stage, main = "x6th_stage")
+hist(clean_data$differentiate, main = "differentiate")
+hist(clean_data$grade, main = "grade")
+hist(clean_data$a_stage, main = "a_stage")
+hist(clean_data$tumor_size, main = "tumor_size")
+hist(clean_data$estrogen_status, main = "estrogen_status")
+hist(clean_data$progesterone_status, main = "progesterone_status")
+hist(clean_data$regional_node_examined, main = "regional_node_examined")
+hist(clean_data$regional_node_positive, main = "regional_node_positive")
+hist(clean_data$survival_months, main = "survival_months")
+hist(clean_data$status, main = "status")
+```
