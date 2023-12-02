@@ -38,7 +38,8 @@ clean_data = data |>
     a_stage = as.numeric(factor(a_stage, levels = c("Regional", "Distant"))) - 1,
     estrogen_status = as.numeric(factor(estrogen_status, levels = c("Negative", "Positive"))) - 1,
     progesterone_status = as.numeric(factor(progesterone_status, levels = c("Negative", "Positive"))) - 1,
-    status = as.numeric(factor(status, levels = c("Dead", "Alive"))) - 1)
+    status = as.numeric(factor(status, levels = c("Dead", "Alive"))) - 1) |>
+  rename(regional_node_positive = reginol_node_positive)
 
 summary(data_1)
 str(data_1)
@@ -69,11 +70,11 @@ italicize_levels()
 ```{R}
 null_model = glm(status ~ 1, family = binomial(link = "logit"), data = clean_data)
 
-model = glm(status ~ (age * race * marital_status + t_stage + n_stage + x6th_stage + differentiate + grade + a_stage + tumor_size + estrogen_status + progesterone_status + regional_node_examined + reginol_node_positive),
+model = glm(status ~ (age * race * marital_status + t_stage + n_stage + x6th_stage + differentiate + grade + a_stage + tumor_size + estrogen_status + progesterone_status + regional_node_examined + regional_node_positive),
              family = binomial(link = "logit"), data = clean_data)
 
 
-model = glm(status ~ (age * race * marital_status + t_stage + n_stage + x6th_stage + grade + a_stage + tumor_size  + regional_node_examined + reginol_node_positive),
+model = glm(status ~ (age * race * marital_status + t_stage + n_stage + x6th_stage + grade + a_stage + tumor_size  + regional_node_examined + regional_node_positive),
              family = binomial(link = "logit"), data = clean_data)
 
 
