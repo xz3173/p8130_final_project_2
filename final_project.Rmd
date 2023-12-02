@@ -8,16 +8,25 @@ library(gtsummary)
 library(tidyverse)
 library(car)
 library(caret)
-
 ```
-```{r}
 
+```{r}
 data = read_csv("./data/data.csv") |>
   janitor::clean_names()
+
+summary(data)
+
+str(data)
+```
+
+```{r}
 # Check for missing data
 colSums(is.na(data))
+```
+
+```{r}
 # Convert character to factor for regression analysis
-data_1 = data |>
+clean_data = data |>
   mutate(
     race = as.numeric(factor(race, levels = c("White", "Black", "Other"))) - 1,
     marital_status = as.numeric(factor(marital_status, levels = c("Married", "Single", "Divorced", "Widowed", "Separated"))) - 1,
@@ -25,25 +34,32 @@ data_1 = data |>
     n_stage = as.numeric(factor(n_stage, levels = c("N1", "N2", "N3"))) - 1,
     x6th_stage = as.numeric(factor(x6th_stage, levels = c("IIA", "IIB", "IIIA", "IIIB", "IIIC"))) - 1,
     differentiate = as.numeric(factor(differentiate, levels = c("Undifferentiated", "Poorly differentiated", "Moderately differentiated", "Well differentiated"))) - 1,
+    grade = as.numeric(factor(grade, levels = c("1", "2", "3", "anaplastic; Grade IV"))),
     a_stage = as.numeric(factor(a_stage, levels = c("Distant", "Regional"))) - 1,
     estrogen_status = as.numeric(factor(estrogen_status, levels = c("Negative", "Positive"))) - 1,
     progesterone_status = as.numeric(factor(progesterone_status, levels = c("Negative", "Positive"))) - 1,
     status = as.numeric(factor(status, levels = c("Alive", "Dead"))) - 1)
+
+summary(data_1)
 str(data_1)
+
+colSums(is.na(data_1))
 ```
-```
+
 
 
 #Figure 1 
 ```{r}
 data_1 %>%
+
+proj2 = data |>
 tbl_summary(by="status",
   missing_text = "(Missing)", # counts missing values
   statistic = list(all_continuous() ~ "mean={mean} (min={min}, max={max}, sd={sd})",
                    all_categorical() ~ "n={n} (p={p}%)") # stats for categorical
  # specify variables to include
-  ) %>%
-bold_labels()  %>%
+  ) |>
+bold_labels()  |>
 italicize_levels()
 ```
 
@@ -53,27 +69,20 @@ italicize_levels()
 
 #Model fitting
 ```{R}
-null_model= glm(Status~1,family = binomial(link = "logit"), data = proj1)
-model <- glm(Status ~ (Age* Race*Marital.Status + T.Stage + N.Stage + X6th.Stage +
-                       differentiate + Grade + A.Stage + Tumor.Size + Estrogen.Status +
-                       Progesterone.Status + Regional.Node.Examined + Reginol.Node.Positive),
-             family = binomial(link = "logit"), data = proj1)
+null_model = glm(status ~ 1, family = binomial(link = "logit"), data = clean_data)
+
+model = glm(status ~ (age * race * marital_status + t_stage + n_stage + x6th_stage + differentiate + grade + a_stage + tumor_size + estrogen_status + progesterone_status + regional_node_examined + reginol_node_positive),
+             family = binomial(link = "logit"), data = clean_data)
 
 
-model <- glm(Status ~ (Age* Race*Marital.Status + T.Stage + N.Stage + X6th.Stage + Grade + A.Stage + Tumor.Size  + Regional.Node.Examined + Reginol.Node.Positive),
-             family = binomial(link = "logit"), data = proj1)
+model = glm(status ~ (age * race * marital_status + t_stage + n_stage + x6th_stage + grade + a_stage + tumor_size  + regional_node_examined + reginol_node_positive),
+             family = binomial(link = "logit"), data = clean_data)
 
 
-step_model <- step(null_model, scope = list(lower = null_model, upper = model), 
+step_model = step(null_model, scope = list(lower = null_model, upper = model), 
                    direction = "forward")
 
-step_model <- step(model, direction = "backward")
-data = read_csv("./data/data.csv") |>
-  janitor::clean_names()
-
-summary(data)
-
-str(data)
+step_model = step(model, direction = "backward")
 ```
 
 
