@@ -10,9 +10,11 @@ library(car)
 library(caret)
 
 ```
-
 ```{r}
+
 data = read.csv("./data/data.csv")
+# Check for missing data
+colSums(is.na(data))
 # Convert character to factor for regression analysis
 data_1 = data |>
   mutate(
@@ -27,7 +29,6 @@ data_1 = data |>
     progesterone_status = as.numeric(factor(progesterone_status, levels = c("Negative", "Positive"))) - 1,
     status = as.numeric(factor(status, levels = c("Alive", "Dead"))) - 1)
 str(data_1)
-colSums(is.na(data_1))
 ```
 ```
 
@@ -74,10 +75,7 @@ summary(data)
 str(data)
 ```
 
-```{r}
-# Check for missing data
-colSums(is.na(data))
-```
+
 
 
 
