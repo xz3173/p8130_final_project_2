@@ -8,5 +8,36 @@ library(tidyverse)
 ```
 
 ```{r}
-data = read_csv("./data/data.csv")
+data = read_csv("./data/data.csv") |>
+  janitor::clean_names()
+
+summary(data)
+
+str(data)
 ```
+
+```{r}
+# Check for missing data
+colSums(is.na(data))
+```
+
+```{r}
+# Convert character to factor for regression analysis
+data_1 = data |>
+  mutate(
+    race = as.numeric(factor(race, levels = c("White", "Black", "Other"))) - 1,
+    marital_status = as.numeric(factor(marital_status, levels = c("Married", "Single", "Divorced", "Widowed", "Separated"))) - 1,
+    t_stage = as.numeric(factor(t_stage, levels = c("T1", "T2", "T3", "T4"))) - 1,
+    n_stage = as.numeric(factor(n_stage, levels = c("N1", "N2", "N3"))) - 1,
+    x6th_stage = as.numeric(factor(x6th_stage, levels = c("IIA", "IIB", "IIIA", "IIIB", "IIIC"))) - 1,
+    differentiate = as.numeric(factor(differentiate, levels = c("Undifferentiated", "Poorly differentiated", "Moderately differentiated", "Well differentiated"))) - 1,
+    a_stage = as.numeric(factor(a_stage, levels = c("Distant", "Regional"))) - 1,
+    estrogen_status = as.numeric(factor(estrogen_status, levels = c("Negative", "Positive"))) - 1,
+    progesterone_status = as.numeric(factor(progesterone_status, levels = c("Negative", "Positive"))) - 1,
+    status = as.numeric(factor(status, levels = c("Alive", "Dead"))) - 1)
+
+str(data_1)
+
+colSums(is.na(data_1))
+```
+
