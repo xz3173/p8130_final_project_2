@@ -199,7 +199,7 @@ clean_data = data |>
     a_stage = as.numeric(factor(a_stage, levels = c("Regional", "Distant"))) - 1,
     estrogen_status = as.numeric(factor(estrogen_status, levels = c("Negative", "Positive"))) - 1,
     progesterone_status = as.numeric(factor(progesterone_status, levels = c("Negative", "Positive"))) - 1,
-    status = as.numeric(factor(status, levels = c("Dead", "Alive"))) - 1) |>
+    status = as.numeric(factor(status, levels = c("Dead", "Alive"))) - 1)|>
   rename(regional_node_positive = reginol_node_positive)
 
 summary(clean_data)
@@ -289,343 +289,121 @@ italicize_levels()
 
 \#Find correlation
 
-\#Model fitting
-
 ``` r
-null_model = glm(status ~ 1, family = binomial(link = "logit"), data = clean_data)
-
-model = glm(status ~ (age * race * marital_status + t_stage + n_stage + x6th_stage + differentiate + grade + a_stage + tumor_size + estrogen_status + progesterone_status + regional_node_examined + regional_node_positive),
-             family = binomial(link = "logit"), data = clean_data)
-
-
-model = glm(status ~ (age * race * marital_status + t_stage + n_stage + x6th_stage + grade + a_stage + tumor_size  + regional_node_examined + regional_node_positive),
-             family = binomial(link = "logit"), data = clean_data)
-
-
-step_model = step(null_model, scope = list(lower = null_model, upper = model), 
-                   direction = "forward")
+corplot=cor(clean_data)
+corrplot(corplot)
 ```
 
-    ## Start:  AIC=3446.68
-    ## status ~ 1
-    ## 
-    ##                          Df Deviance    AIC
-    ## + x6th_stage              1   3198.0 3202.0
-    ## + n_stage                 1   3214.2 3218.2
-    ## + regional_node_positive  1   3236.8 3240.8
-    ## + grade                   1   3338.0 3342.0
-    ## + t_stage                 1   3353.3 3357.3
-    ## + tumor_size              1   3380.1 3384.1
-    ## + a_stage                 1   3415.7 3419.7
-    ## + marital_status          1   3421.0 3425.0
-    ## + age                     1   3432.0 3436.0
-    ## + regional_node_examined  1   3439.9 3443.9
-    ## <none>                        3444.7 3446.7
-    ## + race                    1   3444.6 3448.6
-    ## 
-    ## Step:  AIC=3202
-    ## status ~ x6th_stage
-    ## 
-    ##                          Df Deviance    AIC
-    ## + grade                   1   3138.7 3144.7
-    ## + marital_status          1   3181.7 3187.7
-    ## + age                     1   3183.2 3189.2
-    ## + regional_node_examined  1   3185.2 3191.2
-    ## + regional_node_positive  1   3186.9 3192.9
-    ## + n_stage                 1   3193.9 3199.9
-    ## + t_stage                 1   3196.0 3202.0
-    ## <none>                        3198.0 3202.0
-    ## + tumor_size              1   3196.7 3202.7
-    ## + a_stage                 1   3197.6 3203.6
-    ## + race                    1   3197.7 3203.7
-    ## 
-    ## Step:  AIC=3144.67
-    ## status ~ x6th_stage + grade
-    ## 
-    ##                          Df Deviance    AIC
-    ## + age                     1   3117.5 3125.5
-    ## + marital_status          1   3123.2 3131.2
-    ## + regional_node_examined  1   3124.8 3132.8
-    ## + regional_node_positive  1   3125.9 3133.9
-    ## + n_stage                 1   3134.3 3142.3
-    ## <none>                        3138.7 3144.7
-    ## + t_stage                 1   3137.3 3145.3
-    ## + tumor_size              1   3137.8 3145.8
-    ## + race                    1   3138.1 3146.1
-    ## + a_stage                 1   3138.1 3146.1
-    ## 
-    ## Step:  AIC=3125.46
-    ## status ~ x6th_stage + grade + age
-    ## 
-    ##                          Df Deviance    AIC
-    ## + regional_node_examined  1   3104.2 3114.2
-    ## + regional_node_positive  1   3106.2 3116.2
-    ## + marital_status          1   3106.4 3116.4
-    ## + n_stage                 1   3113.7 3123.7
-    ## + t_stage                 1   3115.1 3125.1
-    ## <none>                        3117.5 3125.5
-    ## + tumor_size              1   3115.7 3125.7
-    ## + a_stage                 1   3116.6 3126.6
-    ## + race                    1   3117.3 3127.3
-    ## 
-    ## Step:  AIC=3114.15
-    ## status ~ x6th_stage + grade + age + regional_node_examined
-    ## 
-    ##                          Df Deviance    AIC
-    ## + regional_node_positive  1   3078.5 3090.5
-    ## + marital_status          1   3093.1 3105.1
-    ## + n_stage                 1   3098.2 3110.2
-    ## <none>                        3104.2 3114.2
-    ## + t_stage                 1   3103.0 3115.0
-    ## + tumor_size              1   3103.2 3115.2
-    ## + a_stage                 1   3103.6 3115.6
-    ## + race                    1   3104.0 3116.0
-    ## 
-    ## Step:  AIC=3090.49
-    ## status ~ x6th_stage + grade + age + regional_node_examined + 
-    ##     regional_node_positive
-    ## 
-    ##                  Df Deviance    AIC
-    ## + marital_status  1   3068.1 3082.1
-    ## + t_stage         1   3068.9 3082.9
-    ## + tumor_size      1   3073.9 3087.9
-    ## <none>                3078.5 3090.5
-    ## + a_stage         1   3077.8 3091.8
-    ## + race            1   3078.4 3092.4
-    ## + n_stage         1   3078.4 3092.4
-    ## 
-    ## Step:  AIC=3082.13
-    ## status ~ x6th_stage + grade + age + regional_node_examined + 
-    ##     regional_node_positive + marital_status
-    ## 
-    ##                      Df Deviance    AIC
-    ## + t_stage             1   3058.8 3074.8
-    ## + tumor_size          1   3063.8 3079.8
-    ## <none>                    3068.1 3082.1
-    ## + a_stage             1   3067.5 3083.5
-    ## + age:marital_status  1   3067.7 3083.7
-    ## + race                1   3068.0 3084.0
-    ## + n_stage             1   3068.0 3084.0
-    ## 
-    ## Step:  AIC=3074.84
-    ## status ~ x6th_stage + grade + age + regional_node_examined + 
-    ##     regional_node_positive + marital_status + t_stage
-    ## 
-    ##                      Df Deviance    AIC
-    ## + n_stage             1   3053.4 3071.4
-    ## <none>                    3058.8 3074.8
-    ## + age:marital_status  1   3058.4 3076.4
-    ## + a_stage             1   3058.6 3076.6
-    ## + race                1   3058.8 3076.8
-    ## + tumor_size          1   3058.8 3076.8
-    ## 
-    ## Step:  AIC=3071.37
-    ## status ~ x6th_stage + grade + age + regional_node_examined + 
-    ##     regional_node_positive + marital_status + t_stage + n_stage
-    ## 
-    ##                      Df Deviance    AIC
-    ## <none>                    3053.4 3071.4
-    ## + age:marital_status  1   3052.9 3072.9
-    ## + a_stage             1   3053.2 3073.2
-    ## + tumor_size          1   3053.2 3073.2
-    ## + race                1   3053.3 3073.3
+<img src="final_project_files/figure-gfm/unnamed-chunk-6-1.png" width="90%" />
 
 ``` r
-step_model = step(model, direction = "backward")
+#tumor_size vs t_stage = 0.801
+#grade=differentiate =>1
+#n_stage = x6th_stage => 0.881
+#n_stage = regional positive status =>0.838073333
+selected_data = clean_data |>
+  select(-tumor_size, -grade,-n_stage,-regional_node_positive,-x6th_stage)
+
+corplot=cor(selected_data)
+corrplot(corplot)
 ```
 
-    ## Start:  AIC=3074.59
-    ## status ~ (age * race * marital_status + t_stage + n_stage + x6th_stage + 
-    ##     grade + a_stage + tumor_size + regional_node_examined + regional_node_positive)
-    ## 
-    ##                           Df Deviance    AIC
-    ## - x6th_stage               1   3042.7 3072.7
-    ## - a_stage                  1   3042.7 3072.7
-    ## - tumor_size               1   3042.7 3072.7
-    ## - age:race:marital_status  1   3042.8 3072.8
-    ## <none>                         3042.6 3074.6
-    ## - n_stage                  1   3048.7 3078.7
-    ## - t_stage                  1   3051.4 3081.4
-    ## - regional_node_positive   1   3065.7 3095.7
-    ## - regional_node_examined   1   3068.8 3098.8
-    ## - grade                    1   3109.9 3139.9
-    ## 
-    ## Step:  AIC=3072.66
-    ## status ~ age + race + marital_status + t_stage + n_stage + grade + 
-    ##     a_stage + tumor_size + regional_node_examined + regional_node_positive + 
-    ##     age:race + age:marital_status + race:marital_status + age:race:marital_status
-    ## 
-    ##                           Df Deviance    AIC
-    ## - a_stage                  1   3042.7 3070.7
-    ## - tumor_size               1   3042.7 3070.7
-    ## - age:race:marital_status  1   3042.8 3070.8
-    ## <none>                         3042.7 3072.7
-    ## - t_stage                  1   3054.6 3082.6
-    ## - n_stage                  1   3057.6 3085.6
-    ## - regional_node_positive   1   3066.2 3094.2
-    ## - regional_node_examined   1   3068.9 3096.9
-    ## - grade                    1   3109.9 3137.9
-    ## 
-    ## Step:  AIC=3070.74
-    ## status ~ age + race + marital_status + t_stage + n_stage + grade + 
-    ##     tumor_size + regional_node_examined + regional_node_positive + 
-    ##     age:race + age:marital_status + race:marital_status + age:race:marital_status
-    ## 
-    ##                           Df Deviance    AIC
-    ## - tumor_size               1   3042.8 3068.8
-    ## - age:race:marital_status  1   3042.9 3068.9
-    ## <none>                         3042.7 3070.7
-    ## - t_stage                  1   3055.7 3081.7
-    ## - n_stage                  1   3058.1 3084.1
-    ## - regional_node_positive   1   3066.3 3092.3
-    ## - regional_node_examined   1   3069.2 3095.2
-    ## - grade                    1   3109.9 3135.9
-    ## 
-    ## Step:  AIC=3068.85
-    ## status ~ age + race + marital_status + t_stage + n_stage + grade + 
-    ##     regional_node_examined + regional_node_positive + age:race + 
-    ##     age:marital_status + race:marital_status + age:race:marital_status
-    ## 
-    ##                           Df Deviance    AIC
-    ## - age:race:marital_status  1   3043.0 3067.0
-    ## <none>                         3042.8 3068.8
-    ## - n_stage                  1   3058.1 3082.1
-    ## - regional_node_positive   1   3066.4 3090.4
-    ## - regional_node_examined   1   3069.2 3093.2
-    ## - t_stage                  1   3070.0 3094.0
-    ## - grade                    1   3110.0 3134.0
-    ## 
-    ## Step:  AIC=3067.03
-    ## status ~ age + race + marital_status + t_stage + n_stage + grade + 
-    ##     regional_node_examined + regional_node_positive + age:race + 
-    ##     age:marital_status + race:marital_status
-    ## 
-    ##                          Df Deviance    AIC
-    ## - age:marital_status      1   3043.2 3065.2
-    ## <none>                        3043.0 3067.0
-    ## - age:race                1   3045.2 3067.2
-    ## - race:marital_status     1   3052.0 3074.0
-    ## - n_stage                 1   3058.2 3080.2
-    ## - regional_node_positive  1   3066.6 3088.6
-    ## - regional_node_examined  1   3069.3 3091.3
-    ## - t_stage                 1   3070.1 3092.1
-    ## - grade                   1   3110.3 3132.3
-    ## 
-    ## Step:  AIC=3065.15
-    ## status ~ age + race + marital_status + t_stage + n_stage + grade + 
-    ##     regional_node_examined + regional_node_positive + age:race + 
-    ##     race:marital_status
-    ## 
-    ##                          Df Deviance    AIC
-    ## <none>                        3043.2 3065.2
-    ## - age:race                1   3045.4 3065.4
-    ## - race:marital_status     1   3052.4 3072.4
-    ## - n_stage                 1   3058.4 3078.4
-    ## - regional_node_positive  1   3066.7 3086.7
-    ## - regional_node_examined  1   3069.5 3089.5
-    ## - t_stage                 1   3070.2 3090.2
-    ## - grade                   1   3110.4 3130.4
+<img src="final_project_files/figure-gfm/unnamed-chunk-6-2.png" width="90%" />
+
+# Pairs plot
+
+# Use `windows` for windows system / `quartz` for macos system
+
+# Use `quartz(width = 12, height = 12)` to open the window
+
+# Use `dev.off()` to close the window
 
 ``` r
-# Use windows or quartz
-quartz(width = 12, height = 12)
+if (!dir.exists("plots")) {
+    dir.create("plots")
+}
+
+png("plots/pairs_plot.png", 
+    width = 12 * 600, 
+    height = 12 * 600, 
+    res = 600)
 
 pairs(clean_data)
 ```
 
-<img src="final_project_files/figure-gfm/unnamed-chunk-8-1.png" width="90%" />
+# Corr plot
 
 ``` r
-quartz(width = 12, height = 12)
+png("plots/corr_plot.png", 
+    width = 12 * 600, 
+    height = 12 * 600, 
+    res = 600)
 
 corrplot(cor(clean_data), type = "upper", diag = FALSE)
 ```
 
-<img src="final_project_files/figure-gfm/unnamed-chunk-9-1.png" width="90%" />
+# Plotting boxplot
 
 ``` r
-# Boxplots for each variable
+plot_boxplot = function(data_vector, main_title, x_label = "") {
+  boxplot(data_vector, 
+          main = main_title, 
+          xlab = x_label, 
+          col = "lightblue")
+}
+
+png("plots/box_plot.png", 
+    width = 12 * 600, 
+    height = 12 * 600, 
+    res = 600)
+
 par(mar = c(2, 2, 2, 2))
 par(mfrow = c(4, 4))
-boxplot(clean_data$age, main = "age")
-boxplot(clean_data$race, main = "race")
-boxplot(clean_data$marital_status, main = "marital_status")
-boxplot(clean_data$t_stage, main = "t_stage")
-boxplot(clean_data$n_stage, main = "n_stage")
-boxplot(clean_data$x6th_stage, main = "x6th_stage")
-boxplot(clean_data$differentiate, main = "differentiate")
-boxplot(clean_data$grade, main = "grade")
-boxplot(clean_data$a_stage, main = "a_stage")
-boxplot(clean_data$tumor_size, main = "tumor_size")
-boxplot(clean_data$estrogen_status, main = "estrogen_status")
-boxplot(clean_data$progesterone_status, main = "progesterone_status")
-boxplot(clean_data$regional_node_examined, main = "regional_node_examined")
-boxplot(clean_data$regional_node_positive, main = "regional_node_positive")
-boxplot(clean_data$survival_months, main = "survival_months")
-boxplot(clean_data$status, main = "status")
+
+
+column_names = names(clean_data)
+for (col_name in column_names) {
+  plot_boxplot(clean_data[[col_name]], 
+               main_title = col_name, 
+               x_label = col_name)
+}
+
+
+dev.off()
 ```
 
-<img src="final_project_files/figure-gfm/unnamed-chunk-10-1.png" width="90%" />
+    ## quartz_off_screen 
+    ##                 2
+
+# plotting histogram
 
 ``` r
-# Fit regression using all predictors
-mult.fit = lm(survival_months ~., data = clean_data)
-summary(mult.fit)
-```
+plot_histogram = 
+  function(data_vector, main_title, x_label = "") {
+  hist(data_vector, 
+       main = main_title, 
+       xlab = x_label, 
+       col = "blue")
+}
 
-    ## 
-    ## Call:
-    ## lm(formula = survival_months ~ ., data = clean_data)
-    ## 
-    ## Residuals:
-    ##     Min      1Q  Median      3Q     Max 
-    ## -73.583 -15.243   0.223  16.238  56.701 
-    ## 
-    ## Coefficients: (1 not defined because of singularities)
-    ##                          Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)            43.0401885  2.6101499  16.490  < 2e-16 ***
-    ## age                     0.0407115  0.0364164   1.118  0.26366    
-    ## race                   -0.0288895  0.5503922  -0.052  0.95814    
-    ## marital_status         -0.2944651  0.3277776  -0.898  0.36904    
-    ## t_stage                 1.6072840  0.9770341   1.645  0.10003    
-    ## n_stage                 0.9163048  1.4331942   0.639  0.52264    
-    ## x6th_stage             -1.1297933  0.9114789  -1.240  0.21523    
-    ## differentiate          -0.7944617  0.5230411  -1.519  0.12886    
-    ## grade                          NA         NA      NA       NA    
-    ## a_stage                -3.2118177  2.2496037  -1.428  0.15345    
-    ## tumor_size             -0.0463811  0.0261002  -1.777  0.07564 .  
-    ## estrogen_status         4.3949022  1.5097150   2.911  0.00362 ** 
-    ## progesterone_status    -0.6536390  0.9877921  -0.662  0.50819    
-    ## regional_node_examined  0.0006144  0.0432811   0.014  0.98867    
-    ## regional_node_positive  0.0578738  0.1210518   0.478  0.63261    
-    ## status                 29.7834905  0.9455169  31.500  < 2e-16 ***
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-    ## 
-    ## Residual standard error: 20.13 on 4009 degrees of freedom
-    ## Multiple R-squared:  0.2311, Adjusted R-squared:  0.2284 
-    ## F-statistic: 86.05 on 14 and 4009 DF,  p-value: < 2.2e-16
 
-``` r
-# Histograms for each variable
+png("plots/histogram_plot.png", 
+    width = 12 * 600, 
+    height = 12 * 600, res = 600)
+
 par(mar = c(2, 2, 2, 2))
 par(mfrow = c(4, 4))
-hist(clean_data$age, main = "age")
-hist(clean_data$race, main = "race")
-hist(clean_data$marital_status, main = "marital_status")
-hist(clean_data$t_stage, main = "t_stage")
-hist(clean_data$n_stage, main = "n_stage")
-hist(clean_data$x6th_stage, main = "x6th_stage")
-hist(clean_data$differentiate, main = "differentiate")
-hist(clean_data$grade, main = "grade")
-hist(clean_data$a_stage, main = "a_stage")
-hist(clean_data$tumor_size, main = "tumor_size")
-hist(clean_data$estrogen_status, main = "estrogen_status")
-hist(clean_data$progesterone_status, main = "progesterone_status")
-hist(clean_data$regional_node_examined, main = "regional_node_examined")
-hist(clean_data$regional_node_positive, main = "regional_node_positive")
-hist(clean_data$survival_months, main = "survival_months")
-hist(clean_data$status, main = "status")
+
+
+column_names = names(clean_data)
+for (col_name in column_names) {
+  plot_histogram(clean_data[[col_name]], 
+                 main_title = col_name, 
+                 x_label = col_name)
+}
+
+dev.off()
 ```
 
-<img src="final_project_files/figure-gfm/unnamed-chunk-12-1.png" width="90%" />
+    ## quartz_off_screen 
+    ##                 2

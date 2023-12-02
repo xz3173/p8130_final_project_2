@@ -87,63 +87,109 @@ italicize_levels()
 
 #Find correlation
 ```{R}
-
 corplot=cor(clean_data)
 corrplot(corplot)
 #tumor_size vs t_stage = 0.801
 #grade=differentiate =>1
 #n_stage = x6th_stage => 0.881
-#n_stage = regional positive statu =>0.838073333
-selected_data <- clean_data %>% select(-tumor_size, -grade,-n_stage,-reginol_node_positive,-x6th_stage)
+#n_stage = regional positive status =>0.838073333
+selected_data = clean_data |>
+  select(-tumor_size, -grade,-n_stage,-regional_node_positive,-x6th_stage)
 
 corplot=cor(selected_data)
 corrplot(corplot)
 ```
 
-#Model fitting
-```{R}
-null_model = glm(status ~ 1, family = binomial(link = "logit"), data = selected_data)
-
-model = glm(status ~ (. +age * race * marital_status -survival_months ),
-             family = binomial(link = "logit"), data = selected_data)
-
-step_modelF = step(null_model, scope = list(lower = null_model, upper = model))
-                   
-model = glm(status ~ (age * race * marital_status + t_stage + n_stage + x6th_stage + differentiate + grade + a_stage + tumor_size + estrogen_status + progesterone_status + regional_node_examined + regional_node_positive),
-             family = binomial(link = "logit"), data = clean_data)
 
 
-model = glm(status ~ (age * race * marital_status + t_stage + n_stage + x6th_stage + grade + a_stage + tumor_size  + regional_node_examined + regional_node_positive),
-             family = binomial(link = "logit"), data = clean_data)
 
 
-step_model = step(null_model, scope = list(lower = null_model, upper = model), 
-                   direction = "forward")
-
-step_model = step(model, direction = "backward")
-summary(step_model)
-summary(model)
-summary(step_modelF)
-```
-
-
+# Pairs plot
+# Use `windows` for windows system / `quartz` for macos system
+# Use `quartz(width = 12, height = 12)` to open the window
+# Use `dev.off()` to close the window
 ```{r}
-# Use windows or quartz
-quartz(width = 12, height = 12)
+if (!dir.exists("plots")) {
+    dir.create("plots")
+}
+
+png("plots/pairs_plot.png", 
+    width = 12 * 600, 
+    height = 12 * 600, 
+    res = 600)
 
 pairs(clean_data)
 ```
 
+# Corr plot
 ```{r}
-quartz(width = 12, height = 12)
+png("plots/corr_plot.png", 
+    width = 12 * 600, 
+    height = 12 * 600, 
+    res = 600)
 
 corrplot(cor(clean_data), type = "upper", diag = FALSE)
+
 ```
 
 
+# Plotting boxplot
 ```{r}
-# Fit regression using all predictors
-mult.fit = lm(survival_months ~., data = clean_data)
-summary(mult.fit)
+plot_boxplot = function(data_vector, main_title, x_label = "") {
+  boxplot(data_vector, 
+          main = main_title, 
+          xlab = x_label, 
+          col = "lightblue")
+}
+
+png("plots/box_plot.png", 
+    width = 12 * 600, 
+    height = 12 * 600, 
+    res = 600)
+
+par(mar = c(2, 2, 2, 2))
+par(mfrow = c(4, 4))
+
+
+column_names = names(clean_data)
+for (col_name in column_names) {
+  plot_boxplot(clean_data[[col_name]], 
+               main_title = col_name, 
+               x_label = col_name)
+}
+
+
+dev.off()
 ```
 
+
+
+
+# plotting histogram
+```{r}
+plot_histogram = 
+  function(data_vector, main_title, x_label = "") {
+  hist(data_vector, 
+       main = main_title, 
+       xlab = x_label, 
+       col = "blue")
+}
+
+
+png("plots/histogram_plot.png", 
+    width = 12 * 600, 
+    height = 12 * 600, res = 600)
+
+par(mar = c(2, 2, 2, 2))
+par(mfrow = c(4, 4))
+
+
+column_names = names(clean_data)
+for (col_name in column_names) {
+  plot_histogram(clean_data[[col_name]], 
+                 main_title = col_name, 
+                 x_label = col_name)
+}
+
+dev.off()
+```
