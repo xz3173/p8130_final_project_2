@@ -142,52 +142,8 @@ corrplot(cor(clean_data), type = "upper", diag = FALSE)
 
 
 ```{r}
-# Boxplots for each variable
-par(mar = c(2, 2, 2, 2))
-par(mfrow = c(4, 4))
-boxplot(clean_data$age, main = "age")
-boxplot(clean_data$race, main = "race")
-boxplot(clean_data$marital_status, main = "marital_status")
-boxplot(clean_data$t_stage, main = "t_stage")
-boxplot(clean_data$n_stage, main = "n_stage")
-boxplot(clean_data$x6th_stage, main = "x6th_stage")
-boxplot(clean_data$differentiate, main = "differentiate")
-boxplot(clean_data$grade, main = "grade")
-boxplot(clean_data$a_stage, main = "a_stage")
-boxplot(clean_data$tumor_size, main = "tumor_size")
-boxplot(clean_data$estrogen_status, main = "estrogen_status")
-boxplot(clean_data$progesterone_status, main = "progesterone_status")
-boxplot(clean_data$regional_node_examined, main = "regional_node_examined")
-boxplot(clean_data$regional_node_positive, main = "regional_node_positive")
-boxplot(clean_data$survival_months, main = "survival_months")
-boxplot(clean_data$status, main = "status")
-```
-
-
-```{r}
 # Fit regression using all predictors
 mult.fit = lm(survival_months ~., data = clean_data)
 summary(mult.fit)
 ```
 
-```{r}
-# Histograms for each variable
-par(mar = c(2, 2, 2, 2))
-par(mfrow = c(4, 4))
-hist(clean_data$age, main = "age")
-hist(clean_data$race, main = "race")
-hist(clean_data$marital_status, main = "marital_status")
-hist(clean_data$t_stage, main = "t_stage")
-hist(clean_data$n_stage, main = "n_stage")
-hist(clean_data$x6th_stage, main = "x6th_stage")
-hist(clean_data$differentiate, main = "differentiate")
-hist(clean_data$grade, main = "grade")
-hist(clean_data$a_stage, main = "a_stage")
-hist(clean_data$tumor_size, main = "tumor_size")
-hist(clean_data$estrogen_status, main = "estrogen_status")
-hist(clean_data$progesterone_status, main = "progesterone_status")
-hist(clean_data$regional_node_examined, main = "regional_node_examined")
-hist(clean_data$regional_node_positive, main = "regional_node_positive")
-hist(clean_data$survival_months, main = "survival_months")
-hist(clean_data$status, main = "status")
-```
