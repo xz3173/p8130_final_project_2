@@ -101,6 +101,24 @@ corrplot(corplot)
 ```
 
 
+#Model fitting
+```{R}
+colnames(selected_data)
+null_model = glm(status ~ 1, family = binomial(link = "logit"), data = selected_data)
+
+model = glm(status ~ (factor(marital_status)*factor(race)*age +factor(t_stage) + factor(differentiate) + factor(a_stage) + factor(estrogen_status)+factor(progesterone_status) +regional_node_examined),
+             family = binomial(link = "logit"), data = selected_data)
+
+step_modelF = step(null_model, scope = list(lower = null_model, upper = model), 
+                   direction = "forward")
+
+step_model = step(model, direction = "backward")
+summary(step_model)
+summary(model)
+summary(step_modelF)
+anova(model,step_model,test="Chisq")
+#step_F better than step
+```
 
 
 
