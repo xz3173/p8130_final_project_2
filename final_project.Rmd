@@ -4,9 +4,52 @@ output: github_document
 ---
 
 ```{r}
+library(gtsummary)
 library(tidyverse)
+library(car)
+library(caret)
+
 ```
 
 ```{r}
 data = read_csv("./data/data.csv")
+
 ```
+
+
+#Figure 1 
+```{r}
+proj2 %>%
+tbl_summary(by="Status",
+  missing_text = "(Missing)", # counts missing values
+  statistic = list(all_continuous() ~ "mean={mean} (min={min}, max={max}, sd={sd})",
+                   all_categorical() ~ "n={n} (p={p}%)") # stats for categorical
+ # specify variables to include
+  ) %>%
+bold_labels()  %>%
+italicize_levels()
+```
+
+#Find correlation
+```{R}
+```
+
+#Model fitting
+```{R}
+null_model= glm(Status~1,family = binomial(link = "logit"), data = proj1)
+model <- glm(Status ~ (Age* Race*Marital.Status + T.Stage + N.Stage + X6th.Stage +
+                       differentiate + Grade + A.Stage + Tumor.Size + Estrogen.Status +
+                       Progesterone.Status + Regional.Node.Examined + Reginol.Node.Positive),
+             family = binomial(link = "logit"), data = proj1)
+
+
+model <- glm(Status ~ (Age* Race*Marital.Status + T.Stage + N.Stage + X6th.Stage + Grade + A.Stage + Tumor.Size  + Regional.Node.Examined + Reginol.Node.Positive),
+             family = binomial(link = "logit"), data = proj1)
+
+
+step_model <- step(null_model, scope = list(lower = null_model, upper = model), 
+                   direction = "forward")
+
+step_model <- step(model, direction = "backward")
+```
+
