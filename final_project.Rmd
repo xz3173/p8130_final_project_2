@@ -35,10 +35,10 @@ clean_data = data |>
     x6th_stage = as.numeric(factor(x6th_stage, levels = c("IIA", "IIB", "IIIA", "IIIB", "IIIC"))) - 1,
     differentiate = as.numeric(factor(differentiate, levels = c("Undifferentiated", "Poorly differentiated", "Moderately differentiated", "Well differentiated"))) - 1,
     grade = as.numeric(factor(grade, levels = c("1", "2", "3", "anaplastic; Grade IV"))),
-    a_stage = as.numeric(factor(a_stage, levels = c("Distant", "Regional"))) - 1,
+    a_stage = as.numeric(factor(a_stage, levels = c("Regional", "Distant"))) - 1,
     estrogen_status = as.numeric(factor(estrogen_status, levels = c("Negative", "Positive"))) - 1,
     progesterone_status = as.numeric(factor(progesterone_status, levels = c("Negative", "Positive"))) - 1,
-    status = as.numeric(factor(status, levels = c("Alive", "Dead"))) - 1)
+    status = as.numeric(factor(status, levels = c("Dead", "Alive"))) - 1)
 
 summary(data_1)
 str(data_1)
@@ -50,8 +50,6 @@ colSums(is.na(data_1))
 
 #Figure 1 
 ```{r}
-data_1 %>%
-
 proj2 = data |>
 tbl_summary(by="status",
   missing_text = "(Missing)", # counts missing values
