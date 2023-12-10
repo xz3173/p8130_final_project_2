@@ -12,7 +12,7 @@ library(corrplot)
 library(glmnet)
 library(leaps)
 library(pROC)
-
+library(broom)
 
 set.seed(123)
 
@@ -114,12 +114,6 @@ selected_data = clean_data2 |>
 corplot=cor(selected_data)
 corrplot(corplot)
 ```
-#MAybe useful
-```{R}
-
-model = glm(status ~ (factor(marital_status)*factor(race)*age +factor(t_stage) + factor(differentiate) + factor(a_stage) + factor(estrogen_status)+factor(progesterone_status) +regional_node_examined),
-             family = binomial(link = "logit"), data = selected_data)
-```
 
 #Separate training and testing set (80% training 20% testing )
 ```{R}
@@ -156,10 +150,33 @@ step_model = step(full_model, direction = "backward")
 summary(step_model)
 summary(step_modelF)
 anova(step_model,step_modelF,test="Chisq")
-#same 
 
 test_predictions_log_oddsStep <- predict(step_model, newx = as.matrix(test_set))
 test_predictions_probStep <- plogis(test_predictions_log_oddsStep)
+roc_curveStep <- roc(response = (test_set$status), predictor = as.numeric(test_predictions_probStep))
+```
+
+```{r}
+if (!dir.exists("plots")) {
+    dir.create("plots")
+}
+
+png("plots/pairs_plot.png", 
+    width = 12 * 600, 
+    height = 12 * 600, 
+    res = 600)
+
+pairs(clean_data)
+```
+
+# Corr plot
+```{r}
+png("plots/corr_plot.png", 
+    width = 12 * 600, 
+    height = 12 * 600, 
+    res = 600)
+
+corrplot(cor(clean_data), type = "upper", diag = FALSE)
 
 ```
 
@@ -167,9 +184,7 @@ test_predictions_probStep <- plogis(test_predictions_log_oddsStep)
 #Elastic Net
 ```{R}
 
-
 # Prepare your data
-# Let's say 'data' is your dataframe and 'target' is the name of your response variable
 X <- as.matrix(train_set[, setdiff(names(train_set), "status")])  # Predictor variables
 y <- train_set$status  # Response variable
 
@@ -198,14 +213,120 @@ roc_curve <- roc(response = as.matrix(test_set$status), predictor = as.numeric(t
 
 auc(roc_curve)
 
-#Now step model
-
-
-roc_curveStep <- roc(response = (test_set$status), predictor = as.numeric(test_predictions_probStep))
-
 # Plot the ROC curve
 plot(roc_curve, main = "ROC Curve", col = "#1c61b6", lwd = 2)
 abline(a = 0, b = 1, lty = 2, col = "red") # Add a reference line
 ```
 
+# plotting histogram
+```{r}
+plot_histogram = 
+  function(data_vector, main_title, x_label = "") {
+  hist(data_vector, 
+       main = main_title, 
+       xlab = x_label, 
+       col = "blue")
+}
 
+
+png("plots/histogram_plot.png", 
+    width = 12 * 600, 
+    height = 12 * 600, res = 600)
+
+par(mar = c(2, 2, 2, 2))
+par(mfrow = c(4, 4))
+
+
+column_names = names(clean_data)
+for (col_name in column_names) {
+  plot_histogram(clean_data[[col_name]], 
+                 main_title = col_name, 
+                 x_label = col_name)
+}
+
+dev.off()
+```
+
+# Building a logistic regression model
+We start by computing an example of logistic regression model using the PimaIndiansDiabetes2 [mlbench package], introduced in Chapter @ref(classification-in-r), for predicting the probability of diabetes test positivity based on clinical variables.
+```{r}
+# Fit the logistic regression model
+model2 <-  glm(status ~., data = selected_data, 
+               family = binomial)
+# Predict the probability (p) of diabete positivity
+probabilities <- predict(model2, type = "response")
+predicted.classes <- ifelse(probabilities > 0.5, "Alive", "Dead")
+head(predicted.classes)
+```
+
+# Check binary logistic regression assumptions
+
+Binary logistic regression relies on underlying assumptions to be true:
+
+1.The outcome is a binary or dichotomous variable like yes vs no, positive vs negative, 1 vs 0.
+2.There is a linear relationship between the logit of the outcome and each predictor variables. Recall that the logit function is logit(p) = log(p/(1-p)), where p is the probabilities of the outcome.
+3.There is no influential values (extreme values or outliers) in the continuous predictors
+4.There is no high intercorrelations (i.e. multicollinearity) among the predictors.
+
+## Logistic regression diagnostics
+
+### Linearity assumption
+Here, we’ll check the linear relationship between continuous predictor variables and the logit of the outcome. This can be done by visually inspecting the scatter plot between each predictor and the logit values.
+
+1. Remove qualitative variables from the original data frame and bind the logit values to the data:
+```{r}
+# Select only numeric predictors
+mydata <- selected_data %>%
+  dplyr::select_if(is.numeric) 
+predictors <- colnames(mydata)
+# Bind the logit and tidying the data for plot
+mydata <- mydata %>%
+  mutate(logit = log(probabilities/(1-probabilities))) %>%
+  gather(key = "predictors", value = "predictor.value", -logit)
+```
+
+2. Create the scatter plots:
+```{r}
+ggplot(mydata, aes(logit, predictor.value))+
+  geom_point(size = 0.5, alpha = 0.5) +
+  geom_smooth(method = "loess") + 
+  theme_bw() + 
+  facet_wrap(~predictors, scales = "free_y")
+```
+A graphical check of linearity can be performed using a best fit “loess” line. This is on the probability scale, so it is not going to be straight. But it should be monotonic - it should only ever go up or down.
+
+### Influential values
+Influential values are extreme individual data points that can alter the quality of the logistic regression model.
+
+The most extreme values in the data can be examined by visualizing the Cook’s distance values. Here we label the top 3 largest values:
+```{r}
+plot(model2, which = 4, id.n = 3)
+```
+Note that, not all outliers are influential observations. To check whether the data contains potential influential observations, the standardized residual error can be inspected. Data points with an absolute standardized residuals above 3 represent possible outliers and may deserve closer attention.
+
+```{r}
+# Extract model results
+model.data <- augment(model2) %>% 
+  mutate(index = 1:n()) 
+
+# The data for the top 3 largest values, according to the Cook’s distance, can be displayed as follow:
+model.data %>% top_n(3, .cooksd)
+
+# Plot the standardized residuals:
+ggplot(model.data, aes(index, .std.resid)) + 
+  geom_point(aes(color = status), alpha = .5) +
+  theme_bw()
+
+# Filter potential influential data points with abs(.std.res) > 3:
+model.data %>% 
+  filter(abs(.std.resid) > 3)
+```
+
+### Multicollinearity
+Multicollinearity corresponds to a situation where the data contain highly correlated predictor variables.
+
+Multicollinearity is an important issue in regression analysis and should be fixed by removing the concerned variables. It can be assessed using the R function vif(), which computes the variance inflation factors:
+```{r}
+car::vif(model2)
+```
+As a rule of thumb, a VIF value that exceeds 5 or 10 indicates a problematic amount of collinearity. In our example, there is no collinearity: all variables have a value of VIF well below 5.
