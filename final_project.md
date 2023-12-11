@@ -3,6 +3,11 @@ Final Project
 
 ``` r
 library(gtsummary)
+```
+
+    ## #BlackLivesMatter
+
+``` r
 library(tidyverse)
 ```
 
@@ -11,7 +16,8 @@ library(tidyverse)
     ## ✔ forcats   1.0.0     ✔ stringr   1.5.0
     ## ✔ ggplot2   3.4.3     ✔ tibble    3.2.1
     ## ✔ lubridate 1.9.2     ✔ tidyr     1.3.0
-    ## ✔ purrr     1.0.2     
+    ## ✔ purrr     1.0.2
+
     ## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
     ## ✖ dplyr::filter() masks stats::filter()
     ## ✖ dplyr::lag()    masks stats::lag()
@@ -763,7 +769,48 @@ lines(roc_curveStep,col='yellow')
 
 <img src="final_project_files/figure-gfm/unnamed-chunk-16-2.png" width="90%" />
 
-# Assess model assumptions and diagnostics
+## final model diagnostics
+
+1.  Coefficient Path Plot:
+
+``` r
+plot(final_model, xvar = "lambda")
+```
+
+<img src="final_project_files/figure-gfm/unnamed-chunk-17-1.png" width="90%" />
+2.Cross-Validation Plot:
+
+``` r
+plot(cv_object)
+```
+
+<img src="final_project_files/figure-gfm/unnamed-chunk-18-1.png" width="90%" />
+3.Deviance Plot:
+
+``` r
+plot(final_model, xvar = "lambda", label = TRUE)
+```
+
+<img src="final_project_files/figure-gfm/unnamed-chunk-19-1.png" width="90%" />
+4.Predicted vs. Observed Plot:
+
+``` r
+par(mfrow = c(1, 2))
+plot(predict(final_model, s = best_lambda, newx = as.matrix(test_set2)), as.numeric(test_set$status), main = "Predicted vs. Observed")
+abline(a = 0, b = 1, col = "red")
+```
+
+<img src="final_project_files/figure-gfm/unnamed-chunk-20-1.png" width="90%" />
+5.Residual Analysis:
+
+``` r
+residuals <- as.vector(predict(final_model, newx = as.matrix(test_set2), s = best_lambda, type = "response") - as.numeric(test_set$status))
+plot(residuals, main = "Residuals vs. Fitted Values", xlab = "Fitted Values", ylab = "Residuals")
+```
+
+<img src="final_project_files/figure-gfm/unnamed-chunk-21-1.png" width="90%" />
+
+# Assess final model assumptions
 
 Checking for violations of regression model assumptions, influential
 observations, and multicollinearity is an essential part of ensuring the
@@ -781,7 +828,7 @@ plot(predict(final_model, newx = as.matrix(test_set2), s = best_lambda, type = "
 abline(a = 0, b = 1, col = "red")
 ```
 
-<img src="final_project_files/figure-gfm/unnamed-chunk-17-1.png" width="90%" />
+<img src="final_project_files/figure-gfm/unnamed-chunk-22-1.png" width="90%" />
 
 2.  Checking Residuals: Although there are no standard residuals, we can
     examine the differences between predicted and observed values.
@@ -792,7 +839,7 @@ residuals <- as.vector(predict(final_model, newx = as.matrix(test_set2), s = bes
 plot(residuals, main = "Residuals vs. Fitted Values",  xlab = "Fitted Values", ylab = "Residuals")
 ```
 
-<img src="final_project_files/figure-gfm/unnamed-chunk-18-1.png" width="90%" />
+<img src="final_project_files/figure-gfm/unnamed-chunk-23-1.png" width="90%" />
 
 3.  Checking for Multicollinearity: Evaluate multicollinearity using VIF
     (Variance Inflation Factor) to assess the relationships between
@@ -845,47 +892,6 @@ logit function is logit(p) = log(p/(1-p)), where p is the probabilities
 of the outcome. 3.There is no influential values (extreme values or
 outliers) in the continuous predictors 4.There is no high
 intercorrelations (i.e. multicollinearity) among the predictors.
-
-## Logistic regression diagnostics
-
-1.  Coefficient Path Plot:
-
-``` r
-plot(final_model, xvar = "lambda")
-```
-
-<img src="final_project_files/figure-gfm/unnamed-chunk-21-1.png" width="90%" />
-2.Cross-Validation Plot:
-
-``` r
-plot(cv_object)
-```
-
-<img src="final_project_files/figure-gfm/unnamed-chunk-22-1.png" width="90%" />
-3.Deviance Plot:
-
-``` r
-plot(final_model, xvar = "lambda", label = TRUE)
-```
-
-<img src="final_project_files/figure-gfm/unnamed-chunk-23-1.png" width="90%" />
-4.Predicted vs. Observed Plot:
-
-``` r
-par(mfrow = c(1, 2))
-plot(predict(final_model, s = best_lambda, newx = as.matrix(test_set2)), as.numeric(test_set$status), main = "Predicted vs. Observed")
-abline(a = 0, b = 1, col = "red")
-```
-
-<img src="final_project_files/figure-gfm/unnamed-chunk-24-1.png" width="90%" />
-5.Residual Analysis:
-
-``` r
-residuals <- as.vector(predict(final_model, newx = as.matrix(test_set2), s = best_lambda, type = "response") - as.numeric(test_set$status))
-plot(residuals, main = "Residuals vs. Fitted Values", xlab = "Fitted Values", ylab = "Residuals")
-```
-
-<img src="final_project_files/figure-gfm/unnamed-chunk-25-1.png" width="90%" />
 
 ### Linearity assumption (Not sure with this part)
 

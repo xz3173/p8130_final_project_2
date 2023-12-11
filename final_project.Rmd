@@ -289,7 +289,33 @@ lines(roc_curveStep,col='yellow')
 
 ```
 
-# Assess model assumptions and diagnostics
+## final model diagnostics
+1. Coefficient Path Plot:
+```{r}
+plot(final_model, xvar = "lambda")
+```
+2.Cross-Validation Plot:
+```{r}
+plot(cv_object)
+```
+3.Deviance Plot:
+```{r}
+plot(final_model, xvar = "lambda", label = TRUE)
+```
+4.Predicted vs. Observed Plot:
+```{R}
+par(mfrow = c(1, 2))
+plot(predict(final_model, s = best_lambda, newx = as.matrix(test_set2)), as.numeric(test_set$status), main = "Predicted vs. Observed")
+abline(a = 0, b = 1, col = "red")
+```
+5.Residual Analysis:
+```{r}
+residuals <- as.vector(predict(final_model, newx = as.matrix(test_set2), s = best_lambda, type = "response") - as.numeric(test_set$status))
+plot(residuals, main = "Residuals vs. Fitted Values", xlab = "Fitted Values", ylab = "Residuals")
+```
+
+
+# Assess final model assumptions
 Checking for violations of regression model assumptions, influential observations, and multicollinearity is an essential part of ensuring the reliability and validity of our logistic regression model. 
 
 1. Checking Linearity Assumption:
@@ -351,31 +377,6 @@ Binary logistic regression relies on underlying assumptions to be true:
 2.There is a linear relationship between the logit of the outcome and each predictor variables. Recall that the logit function is logit(p) = log(p/(1-p)), where p is the probabilities of the outcome.
 3.There is no influential values (extreme values or outliers) in the continuous predictors
 4.There is no high intercorrelations (i.e. multicollinearity) among the predictors.
-
-## Logistic regression diagnostics
-1. Coefficient Path Plot:
-```{r}
-plot(final_model, xvar = "lambda")
-```
-2.Cross-Validation Plot:
-```{r}
-plot(cv_object)
-```
-3.Deviance Plot:
-```{r}
-plot(final_model, xvar = "lambda", label = TRUE)
-```
-4.Predicted vs. Observed Plot:
-```{R}
-par(mfrow = c(1, 2))
-plot(predict(final_model, s = best_lambda, newx = as.matrix(test_set2)), as.numeric(test_set$status), main = "Predicted vs. Observed")
-abline(a = 0, b = 1, col = "red")
-```
-5.Residual Analysis:
-```{r}
-residuals <- as.vector(predict(final_model, newx = as.matrix(test_set2), s = best_lambda, type = "response") - as.numeric(test_set$status))
-plot(residuals, main = "Residuals vs. Fitted Values", xlab = "Fitted Values", ylab = "Residuals")
-```
 
 ### Linearity assumption (Not sure with this part)
 Here, we’ll check the linear relationship between continuous predictor variables and the logit of the outcome. This can be done by visually inspecting the scatter plot between each predictor and the logit values.
