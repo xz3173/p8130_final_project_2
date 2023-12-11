@@ -40,14 +40,14 @@ theme_set(theme_minimal() + theme(legend.position = "bottom"))
 data = read_csv("./data/data.csv") |>
   janitor::clean_names()
 
-summary(data)
+#summary(data)
 data=data|>select(-survival_months)
-str(data)
+#str(data)
 ```
 
 ```{r}
 # Check for missing data
-colSums(is.na(data))
+#colSums(is.na(data))
 ```
 
 ```{r}
@@ -67,10 +67,7 @@ clean_data = data |>
     status = as.numeric(factor(status, levels = c("Dead", "Alive"))) - 1)|>
   rename(regional_node_positive = reginol_node_positive)
 
-summary(clean_data)
-str(clean_data)
 
-colSums(is.na(clean_data))
 ```
 
 
@@ -87,160 +84,17 @@ tbl_summary(by="status",
   missing_text = "(Missing)", # counts missing values
   statistic = list(all_continuous() ~ "mean={mean} (min={min}, max={max}, sd={sd})",
                    all_categorical() ~ "n={n} (p={p}%)") # stats for categorical
- # specify variables to include
   ) |>
 bold_labels()  |>
 italicize_levels()
 
 
 clean_data2=clean_data
-clean_data2$tumor_size= (clean_data$tumor_size)
-clean_data2$regional_node_examined = (clean_data$regional_node_examined)
-clean_data2$regional_node_positive = (clean_data$regional_node_positive)
+clean_data2$tumor_size= (clean_data$tumor_size)^(1/3)
+clean_data2$regional_node_examined = log(clean_data$regional_node_examined)
+clean_data2$regional_node_positive = log(clean_data$regional_node_positive)
 
 ```
-
-#Find correlation
-```{R}
-corplot=cor(clean_data2)
-corrplot(corplot)
-#tumor_size vs t_stage = 0.801
-#grade=differentiate =>1
-#n_stage = x6th_stage => 0.881
-#n_stage = regional positive status =>0.838073333
-selected_data = clean_data2 |>
-  select(-tumor_size, -grade,-n_stage,-regional_node_positive,-x6th_stage)
-
-corplot=cor(selected_data)
-corrplot(corplot)
-```
-
-#Separate training and testing set (80% training 20% testing )
-```{R}
-# Calculate the size of each of the data sets
-data_size <- nrow(clean_data2)
-train_size <- floor(0.8 * data_size)
-
-# Create a random sample of row indices for the training set
-train_indices <- sample(seq_len(data_size), size = train_size)
-
-# Subset the data into training and testing sets
-train_set <- clean_data2[train_indices, ]
-train_set2<- selected_data[train_indices,]
-test_set <- clean_data2[-train_indices, ]
-test_set2 <- selected_data[-train_indices, ]
-
-```
-
-
-#Forward, BackWard
-```{R}
-
-selected_train = train_set |>
-  select(-tumor_size, -grade,-n_stage,-regional_node_positive,-x6th_stage)
-
-null_model = glm(status ~ 1, family = binomial(link = "logit"), data = selected_train)
-
-full_model=glm(status ~ . , family = binomial(link = "logit"), data = selected_train)
-
-
-
-step_modelF = step(null_model, scope = list(lower = null_model, upper = full_model), 
-                   direction = "forward")
-
-step_model = step(full_model, direction = "backward")
-summary(step_model)
-summary(step_modelF)
-anova(step_model,step_modelF,test="Chisq")
-
-test_predictions_log_oddsStep <- predict(step_model, newdata  = (test_set),type='response')
-
-test_predictions_probStep <- plogis(test_predictions_log_oddsStep)
-
-roc_curveStep <- roc(response = (test_set$status), predictor = as.numeric(test_predictions_probStep))
-
-auc(roc_curveStep)
-
-```
-
-
-#Elastic Net
-```{R}
-
-# Prepare your data
-X <- as.matrix(train_set[, setdiff(names(train_set), "status")])  # Predictor variables
-y <- train_set$status  # Response variable
-
-lambda_seq <- 10^seq(-3, 0, by = .001)
-
-# Fit the LASSO logistic regression model
-# Use cross-validation to find the optimal lambda
-cv_object <- cv.glmnet(X, y, family = "binomial", alpha = 0.5, type.measure = "class",nfolds=10, lambda = lambda_seq)
-
-tibble(lambda = cv_object$lambda,
-mean_cv_error = cv_object$cvm) %>%
-ggplot(aes(x = lambda, y = mean_cv_error)) +
-geom_point()
-# Best lambda value
-best_lambda <- cv_object$lambda.min
-# Refit the model using the best lambda
-final_model <- glmnet(X, y, family = "binomial", alpha = 0.5, lambda = best_lambda)
-
-test_set2 <- test_set|> select(-status)
-test_predictions_log_odds <- predict(final_model, newx = as.matrix(test_set2))
-
-# Convert log-odds to probabilities
-test_predictions_probElastic <- plogis(test_predictions_log_odds)
-# Create the ROC curve
-roc_curve <- roc(response = as.matrix(test_set$status), predictor = as.numeric(test_predictions_probElastic) )
-
-auc(roc_curve)
-
-# Plot the ROC curve
-
-
-#Training set without full variables
-
-
-```
-#Elastic net 2
-```{r}
-
-
-X <- as.matrix(train_set2[, setdiff(names(train_set2), "status")])  # Predictor variables
-y <- train_set$status  # Response variable
-
-lambda_seq <- 10^seq(-3, 0, by = .001)
-
-# Fit the LASSO logistic regression model
-# Use cross-validation to find the optimal lambda
-cv_object <- cv.glmnet(X, y, family = "binomial", alpha = 0.5, type.measure = "class",nfolds=10, lambda = lambda_seq)
-
-tibble(lambda = cv_object$lambda,
-mean_cv_error = cv_object$cvm) %>%
-ggplot(aes(x = lambda, y = mean_cv_error)) +
-geom_point()
-# Best lambda value
-best_lambda <- cv_object$lambda.min
-# Refit the model using the best lambda
-final_model <- glmnet(X, y, family = "binomial", alpha = 0.5, lambda = best_lambda)
-
-test_set2 <- test_set2|> select(-status)
-test_predictions_log_odds2 <- predict(final_model, newx = as.matrix(test_set2))
-
-# Convert log-odds to probabilities
-test_predictions_probElastic2 <- plogis(test_predictions_log_odds2)
-# Create the ROC curve
-roc_curvenet2 <- roc(response = as.matrix(test_set$status), predictor = as.numeric(test_predictions_probElastic2) )
-
-auc(roc_curvenet2)
-
-plot(roc_curve, main = "ROC Curve", col = "#1c61b6", lwd = 2)
-lines(roc_curveStep,col='yellow')
-lines(roc_curvenet2)
-```
-
-
 
 # plotting histogram
 ```{r}
@@ -271,8 +125,268 @@ for (col_name in column_names) {
 dev.off()
 ```
 
-# Building a logistic regression model
-We start by computing an example of logistic regression model using the PimaIndiansDiabetes2 [mlbench package], introduced in Chapter @ref(classification-in-r), for predicting the probability of diabetes test positivity based on clinical variables.
+#Find correlation
+```{R}
+corplot=cor(clean_data2)
+corrplot(corplot)
+#tumor_size vs t_stage = 0.801
+#grade=differentiate =>1
+#n_stage = x6th_stage => 0.881
+#n_stage = regional positive status =>0.838073333
+selected_data = clean_data2 |>
+  select(-tumor_size, -grade,-n_stage,-regional_node_positive,-x6th_stage)
+
+corplot=cor(selected_data)
+corrplot(corplot)
+```
+
+#Separate training and testing set (80% training 20% testing )
+```{R}
+# Calculate the size of each of the data sets
+data_size <- nrow(clean_data2)
+train_size <- floor(0.8 * data_size)
+
+# Create a random sample of row indices for the training set
+train_indices <- sample(sample(seq_len(data_size), size = train_size))
+
+# Subset the data into training and testing sets
+train_set <- clean_data2[train_indices, ]
+selectedData_train_set<- selected_data[train_indices,]
+test_set <- clean_data2[-train_indices, ]
+selectedData_test_set <- selected_data[-train_indices, ]
+
+```
+
+# Fit a full model
+```{R}
+
+selected_train = train_set |>
+  select(-tumor_size, -grade,-n_stage,-regional_node_positive,-x6th_stage)
+
+null_model = glm(status ~ 1, family = binomial(link = "logit"), data = selected_train)
+
+full_model=glm(status ~ . , family = binomial(link = "logit"), data = selected_train)
+```
+
+# Check logistic regression assumptions
+
+Binary logistic regression relies on underlying assumptions to be true:
+
+1.The outcome is a binary or dichotomous variable like yes vs no, positive vs negative, 1 vs 0.
+2.There is a linear relationship between the logit of the outcome(status) and each predictor variables. Recall that the logit function is logit(p) = log(p/(1-p)), where p is the probabilities of the outcome.
+3.There is no influential values in the continuous predictors.
+4.There is no multicollinearity among the predictors.
+
+## Checking Linearity of continuous variables to the response
+##HENRY - MAY BE NOT NECESSARY
+```{r}
+# Check linearity assumption using conditional residual plots
+crPlots(full_model)
+```
+
+## Checking for Influential Observations:
+Cook's Distance:
+```{r}
+# Calculate Cook's distance for the full model
+cooksd <- influence.measures(full_model)$cooks
+
+# Identify influential observations
+influential_points <- which(cooksd > 4 / length(cooksd))
+
+# Display influential points
+print(influential_points)
+```
+
+## Checking for Multicollinearity:
+```{r}
+# Check for multicollinearity using VIF
+vif_values <- car::vif(full_model)
+
+# Display VIF values
+print(vif_values)
+```
+As a rule of thumb, a VIF value that exceeds 5 or 10 indicates a problematic amount of collinearity. In our example, there is no collinearity: all variables have a value of VIF well below 5.
+
+# Using Forward, BackWard
+```{r}
+step_modelF = step(null_model, scope = list(lower = null_model, upper = full_model), 
+                   direction = "forward")
+step_model = step(full_model, direction = "backward")
+summary(step_model)
+summary(step_modelF)
+anova(step_model,step_modelF,test="Chisq")
+test_predictions_log_oddsStep <- predict(step_model, newdata  = (test_set),type='response')
+test_predictions_probStep <- plogis(test_predictions_log_oddsStep)
+roc_curveStep <- roc(response = (test_set$status), predictor = as.numeric(test_predictions_probStep))
+auc(roc_curveStep)
+
+
+```
+
+```{r}
+#if (!dir.exists("plots")) {
+#    dir.create("plots")
+#}
+#
+#png("plots/pairs_plot.png", 
+#    width = 12 * 600, 
+#    height = 12 * 600, 
+#    res = 600)
+
+#pairs(clean_data)
+```
+
+# Corr plot
+```{r}
+#png("plots/corr_plot.png", 
+#    width = 12 * 600, 
+#    height = 12 * 600, 
+#    res = 600)
+
+#corrplot(cor(clean_data), type = "upper", diag = FALSE)
+
+```
+
+#Elastic Net
+```{R}
+
+# Prepare your data
+X <- as.matrix(train_set[, setdiff(names(train_set), "status")])  # Predictor variables
+y <- train_set$status  # Response variable
+
+lambda_seq <- 10^seq(-3, 0, by = .001)
+
+# Use cross-validation to find the optimal lambda
+cv_object <- cv.glmnet(X, y, family = "binomial", alpha = 0.5, type.measure = "class",nfolds=5, lambda = lambda_seq)
+
+tibble(lambda = cv_object$lambda,
+mean_cv_error = cv_object$cvm) %>%
+ggplot(aes(x = lambda, y = mean_cv_error)) +
+geom_point()
+
+# Best lambda value
+best_lambda <- cv_object$lambda.min
+# Refit the model using the best lambda
+final_model <- glmnet(X, y, family = "binomial", alpha = 0.5, lambda = best_lambda)
+
+test_set2 <- test_set|> select(-status)
+test_predictions_log_odds <- predict(final_model, newx = as.matrix(test_set2))
+
+# Convert log-odds to probabilities
+test_predictions_probElastic <- plogis(test_predictions_log_odds)
+# Create the ROC curve
+roc_curve <- roc(response = as.matrix(test_set$status), predictor = as.numeric(test_predictions_probElastic) )
+
+auc(roc_curve)
+
+```
+
+
+#Elastic net 2
+##Training without full variables
+```{r}
+X2 <- as.matrix(selectedData_train_set[, setdiff(names(selectedData_train_set), "status")])  # Predictor variables
+# Use cross-validation to find the optimal lambda
+cv_object <- cv.glmnet(X2, y, family = "binomial", alpha = 0.5, type.measure = "class",nfolds=5, lambda = lambda_seq)
+
+tibble(lambda = cv_object$lambda,
+mean_cv_error = cv_object$cvm) %>%
+ggplot(aes(x = lambda, y = mean_cv_error)) +
+geom_point()
+# Best lambda value
+best_lambda <- cv_object$lambda.min
+# Refit the model using the best lambda
+final_model2 <- glmnet(X2, y, family = "binomial", alpha = 0.5, lambda = best_lambda)
+
+selectedData_test_set <- selectedData_test_set|> select(-status)
+test_predictions_log_odds2 <- predict(final_model, newx = as.matrix(test_set2))
+
+# Convert log-odds to probabilities
+test_predictions_probElastic2 <- plogis(test_predictions_log_odds2)
+# Create the ROC curve
+roc_curvenet2 <- roc(response = (test_set$status), predictor = as.numeric(test_predictions_probElastic2) )
+
+auc(roc_curvenet2)
+
+plot(roc_curve, main = "ROC Curve", col = "#1c61b6", lwd = 2)
+lines(roc_curveStep,col='yellow')
+lines(roc_curvenet2,col='green')
+```
+
+
+
+# plotting histogram
+## final model diagnostics
+1. Coefficient Path Plot:
+```{r}
+plot(final_model, xvar = "lambda")
+```
+2.Cross-Validation Plot:
+```{r}
+plot(cv_object)
+```
+3.Deviance Plot:
+```{r}
+plot(final_model, xvar = "lambda", label = TRUE)
+```
+4.Predicted vs. Observed Plot:
+```{R}
+par(mfrow = c(1, 2))
+plot(predict(final_model, s = best_lambda, newx = as.matrix(test_set2)), as.numeric(test_set$status), main = "Predicted vs. Observed")
+abline(a = 0, b = 1, col = "red")
+```
+5.Residual Analysis:
+```{r}
+residuals <- as.vector(predict(final_model, newx = as.matrix(test_set2), s = best_lambda, type = "response") - as.numeric(test_set$status))
+plot(residuals, main = "Residuals vs. Fitted Values", xlab = "Fitted Values", ylab = "Residuals")
+```
+
+
+# Assess final model assumptions
+Checking for violations of regression model assumptions, influential observations, and multicollinearity is an essential part of ensuring the reliability and validity of our logistic regression model. 
+
+1. Checking Linearity Assumption:
+While glmnet is based on regularization and not least squares, the linearity assumption can be assessed by examining the relationship between predicted and observed values.
+
+```{r}
+# Assuming 'final_model' is your glmnet logistic regression model
+# Plot predicted vs. observed values
+plot(predict(final_model, newx = as.matrix(test_set2), s = best_lambda, type = "response"), as.numeric(test_set$status), main = "Predicted vs. Observed")
+abline(a = 0, b = 1, col = "red")
+```
+
+2. Checking Residuals:
+#NOT NEEDED, LOGISTICS regression does not need this plot, becasue it's logistics is none-linear
+Although there are no standard residuals, we can examine the differences between predicted and observed values.
+```{r}
+# Assuming 'final_model' is your glmnet logistic regression model
+residuals <- as.vector(predict(final_model2, newx = as.matrix(selectedData_test_set), s = best_lambda, type = "response") - as.numeric(test_set$status))
+plot(residuals, main = "Residuals vs. Fitted Values",  xlab = "Fitted Values", ylab = "Residuals")
+```
+
+3. Checking for Multicollinearity:
+Evaluate multicollinearity using VIF (Variance Inflation Factor) to assess the relationships between predictors.
+```{r}
+# Extract coefficients from the final_model
+coefficients <- as.matrix(coef(final_model2))
+
+# Extract predictors and response
+predictors <- coefficients[-1, ]
+response <- coefficients[1, ]
+
+# Combine predictors and response into a data frame
+model_data <- data.frame(response = response, predictors)
+
+# Calculate correlation matrix
+cor_matrix <- cor(predictors, predictors)
+```
+
+
+# !! (Below part is the old version part, I'm not sure if this part should be removed. But you can refence this part!)
+
+### Building a logistic regression model 
+
+We start by computing an example of logistic regression model using the selected_data, for predicting the probability of status test positivity based on clinical variables.
 ```{r}
 # Fit the logistic regression model
 model2 <-  glm(status ~., data = selected_data, 
@@ -283,21 +397,32 @@ predicted.classes <- ifelse(probabilities > 0.5, "Alive", "Dead")
 head(predicted.classes)
 ```
 
-# Check binary logistic regression assumptions
+# Check logistic regression assumptions
 
 Binary logistic regression relies on underlying assumptions to be true:
 
 1.The outcome is a binary or dichotomous variable like yes vs no, positive vs negative, 1 vs 0.
+#HENRY, ALREADY MET
 2.There is a linear relationship between the logit of the outcome and each predictor variables. Recall that the logit function is logit(p) = log(p/(1-p)), where p is the probabilities of the outcome.
+#HENRY- ALREADY MET BUY FITTING DATA
 3.There is no influential values (extreme values or outliers) in the continuous predictors
+# COOKS distant, however, you did , this is useful
 4.There is no high intercorrelations (i.e. multicollinearity) among the predictors.
-
-## Logistic regression diagnostics
-
-### Linearity assumption
+#HENRY- ALDAY DID FOR Selected_data, fitted 3 model.
+### Linearity assumption (Not sure with this part)
 Here, we’ll check the linear relationship between continuous predictor variables and the logit of the outcome. This can be done by visually inspecting the scatter plot between each predictor and the logit values.
+```{r}
+# Refit the model using the best lambda
+final_model <- glmnet(X, y, family = "binomial", alpha = 0.5, lambda = best_lambda)
+
+test_set2 <- test_set|> select(-status)
+test_predictions_log_odds <- predict(final_model, newx = as.matrix(test_set2))
+# Convert log-odds to probabilities
+test_predictions_probElastic <- plogis(test_predictions_log_odds)
+```
 
 1. Remove qualitative variables from the original data frame and bind the logit values to the data:
+#HENRY - NOT SURE what is this for
 ```{r}
 # Select only numeric predictors
 mydata <- selected_data %>%
@@ -310,6 +435,7 @@ mydata <- mydata %>%
 ```
 
 2. Create the scatter plots:
+#HENRY - not helpful, this does not telling anything
 ```{r}
 ggplot(mydata, aes(logit, predictor.value))+
   geom_point(size = 0.5, alpha = 0.5) +
@@ -321,13 +447,13 @@ A graphical check of linearity can be performed using a best fit “loess” lin
 
 ### Influential values
 Influential values are extreme individual data points that can alter the quality of the logistic regression model.
-
+##HENRY - THIS IS GOOD 
 The most extreme values in the data can be examined by visualizing the Cook’s distance values. Here we label the top 3 largest values:
 ```{r}
 plot(model2, which = 4, id.n = 3)
 ```
 Note that, not all outliers are influential observations. To check whether the data contains potential influential observations, the standardized residual error can be inspected. Data points with an absolute standardized residuals above 3 represent possible outliers and may deserve closer attention.
-
+#GOOD
 ```{r}
 # Extract model results
 model.data <- augment(model2) %>% 
@@ -347,6 +473,7 @@ model.data %>%
 ```
 
 ### Multicollinearity
+#NOT NEED, Aldary did that, but ZHANGXUE might need this
 Multicollinearity corresponds to a situation where the data contain highly correlated predictor variables.
 
 Multicollinearity is an important issue in regression analysis and should be fixed by removing the concerned variables. It can be assessed using the R function vif(), which computes the variance inflation factors:
