@@ -52,8 +52,36 @@ library(corrplot)
     ## corrplot 0.92 loaded
 
 ``` r
+library(glmnet)
+```
+
+    ## Loading required package: Matrix
+    ## 
+    ## Attaching package: 'Matrix'
+    ## 
+    ## The following objects are masked from 'package:tidyr':
+    ## 
+    ##     expand, pack, unpack
+    ## 
+    ## Loaded glmnet 4.1-8
+
+``` r
+library(leaps)
+library(pROC)
+```
+
+    ## Type 'citation("pROC")' for a citation.
+    ## 
+    ## Attaching package: 'pROC'
+    ## 
+    ## The following objects are masked from 'package:stats':
+    ## 
+    ##     cov, smooth, var
+
+``` r
 library(broom)
 
+set.seed(123)
 
 knitr::opts_chunk$set(
     echo = TRUE,
@@ -129,10 +157,11 @@ summary(data)
     ## 
 
 ``` r
+data=data|>select(-survival_months)
 str(data)
 ```
 
-    ## spc_tbl_ [4,024 × 16] (S3: spec_tbl_df/tbl_df/tbl/data.frame)
+    ## tibble [4,024 × 15] (S3: tbl_df/tbl/data.frame)
     ##  $ age                   : num [1:4024] 68 50 58 58 47 51 51 40 40 69 ...
     ##  $ race                  : chr [1:4024] "White" "White" "White" "White" ...
     ##  $ marital_status        : chr [1:4024] "Married" "Married" "Divorced" "Married" ...
@@ -147,28 +176,7 @@ str(data)
     ##  $ progesterone_status   : chr [1:4024] "Positive" "Positive" "Positive" "Positive" ...
     ##  $ regional_node_examined: num [1:4024] 24 14 14 2 3 18 11 9 20 21 ...
     ##  $ reginol_node_positive : num [1:4024] 1 5 7 1 1 2 1 1 18 12 ...
-    ##  $ survival_months       : num [1:4024] 60 62 75 84 50 89 54 14 70 92 ...
     ##  $ status                : chr [1:4024] "Alive" "Alive" "Alive" "Alive" ...
-    ##  - attr(*, "spec")=
-    ##   .. cols(
-    ##   ..   Age = col_double(),
-    ##   ..   Race = col_character(),
-    ##   ..   `Marital Status` = col_character(),
-    ##   ..   `T Stage` = col_character(),
-    ##   ..   `N Stage` = col_character(),
-    ##   ..   `6th Stage` = col_character(),
-    ##   ..   differentiate = col_character(),
-    ##   ..   Grade = col_character(),
-    ##   ..   `A Stage` = col_character(),
-    ##   ..   `Tumor Size` = col_double(),
-    ##   ..   `Estrogen Status` = col_character(),
-    ##   ..   `Progesterone Status` = col_character(),
-    ##   ..   `Regional Node Examined` = col_double(),
-    ##   ..   `Reginol Node Positive` = col_double(),
-    ##   ..   `Survival Months` = col_double(),
-    ##   ..   Status = col_character()
-    ##   .. )
-    ##  - attr(*, "problems")=<externalptr>
 
 ``` r
 # Check for missing data
@@ -183,10 +191,8 @@ colSums(is.na(data))
     ##                      0                      0                      0 
     ##             tumor_size        estrogen_status    progesterone_status 
     ##                      0                      0                      0 
-    ## regional_node_examined  reginol_node_positive        survival_months 
-    ##                      0                      0                      0 
-    ##                 status 
-    ##                      0
+    ## regional_node_examined  reginol_node_positive                 status 
+    ##                      0                      0                      0
 
 ``` r
 # Convert character to factor for regression analysis
@@ -229,19 +235,19 @@ summary(clean_data)
     ##  Mean   :0.02286   Mean   : 30.47   Mean   :0.9332   Mean   :0.8265     
     ##  3rd Qu.:0.00000   3rd Qu.: 38.00   3rd Qu.:1.0000   3rd Qu.:1.0000     
     ##  Max.   :1.00000   Max.   :140.00   Max.   :1.0000   Max.   :1.0000     
-    ##  regional_node_examined regional_node_positive survival_months     status      
-    ##  Min.   : 1.00          Min.   : 1.000         Min.   :  1.0   Min.   :0.0000  
-    ##  1st Qu.: 9.00          1st Qu.: 1.000         1st Qu.: 56.0   1st Qu.:1.0000  
-    ##  Median :14.00          Median : 2.000         Median : 73.0   Median :1.0000  
-    ##  Mean   :14.36          Mean   : 4.158         Mean   : 71.3   Mean   :0.8469  
-    ##  3rd Qu.:19.00          3rd Qu.: 5.000         3rd Qu.: 90.0   3rd Qu.:1.0000  
-    ##  Max.   :61.00          Max.   :46.000         Max.   :107.0   Max.   :1.0000
+    ##  regional_node_examined regional_node_positive     status      
+    ##  Min.   : 1.00          Min.   : 1.000         Min.   :0.0000  
+    ##  1st Qu.: 9.00          1st Qu.: 1.000         1st Qu.:1.0000  
+    ##  Median :14.00          Median : 2.000         Median :1.0000  
+    ##  Mean   :14.36          Mean   : 4.158         Mean   :0.8469  
+    ##  3rd Qu.:19.00          3rd Qu.: 5.000         3rd Qu.:1.0000  
+    ##  Max.   :61.00          Max.   :46.000         Max.   :1.0000
 
 ``` r
 str(clean_data)
 ```
 
-    ## tibble [4,024 × 16] (S3: tbl_df/tbl/data.frame)
+    ## tibble [4,024 × 15] (S3: tbl_df/tbl/data.frame)
     ##  $ age                   : num [1:4024] 68 50 58 58 47 51 51 40 40 69 ...
     ##  $ race                  : num [1:4024] 0 0 0 0 0 0 0 0 0 0 ...
     ##  $ marital_status        : num [1:4024] 0 0 2 0 0 1 0 0 2 0 ...
@@ -256,7 +262,6 @@ str(clean_data)
     ##  $ progesterone_status   : num [1:4024] 1 1 1 1 1 1 1 1 1 1 ...
     ##  $ regional_node_examined: num [1:4024] 24 14 14 2 3 18 11 9 20 21 ...
     ##  $ regional_node_positive: num [1:4024] 1 5 7 1 1 2 1 1 18 12 ...
-    ##  $ survival_months       : num [1:4024] 60 62 75 84 50 89 54 14 70 92 ...
     ##  $ status                : num [1:4024] 1 1 1 1 1 1 1 0 1 1 ...
 
 ``` r
@@ -271,12 +276,12 @@ colSums(is.na(clean_data))
     ##                      0                      0                      0 
     ##             tumor_size        estrogen_status    progesterone_status 
     ##                      0                      0                      0 
-    ## regional_node_examined regional_node_positive        survival_months 
-    ##                      0                      0                      0 
-    ##                 status 
-    ##                      0
+    ## regional_node_examined regional_node_positive                 status 
+    ##                      0                      0                      0
 
-\#Figure 1
+\#Model fitting \#Based on boxplots, transformaiton is necesessary to
+reduce outliers \#cube root of tumor size \#log of regional_node_examied
+\#log of regional_node_positive \#Figure 1
 
 ``` r
 proj2 = data |>
@@ -288,531 +293,13 @@ tbl_summary(by="status",
   ) |>
 bold_labels()  |>
 italicize_levels()
+
+
+clean_data2=clean_data
+clean_data2$tumor_size= (clean_data$tumor_size)
+clean_data2$regional_node_examined = (clean_data$regional_node_examined)
+clean_data2$regional_node_positive = (clean_data$regional_node_positive)
 ```
-
-\#Find correlation
-
-``` r
-corplot=cor(clean_data)
-corrplot(corplot)
-```
-
-<img src="final_project_files/figure-gfm/unnamed-chunk-6-1.png" width="90%" />
-
-``` r
-#tumor_size vs t_stage = 0.801
-#grade=differentiate =>1
-#n_stage = x6th_stage => 0.881
-#n_stage = regional positive status =>0.838073333
-selected_data = clean_data |>
-  select(-tumor_size, -grade,-n_stage,-regional_node_positive,-x6th_stage)
-
-corplot=cor(selected_data)
-corrplot(corplot)
-```
-
-<img src="final_project_files/figure-gfm/unnamed-chunk-6-2.png" width="90%" />
-
-\#Model fitting
-
-``` r
-colnames(selected_data)
-```
-
-    ##  [1] "age"                    "race"                   "marital_status"        
-    ##  [4] "t_stage"                "differentiate"          "a_stage"               
-    ##  [7] "estrogen_status"        "progesterone_status"    "regional_node_examined"
-    ## [10] "survival_months"        "status"
-
-``` r
-null_model = glm(status ~ 1, family = binomial(link = "logit"), data = selected_data)
-
-model = glm(status ~ (factor(marital_status)*factor(race)*age +factor(t_stage) + factor(differentiate) + factor(a_stage) + factor(estrogen_status)+factor(progesterone_status) +regional_node_examined),
-             family = binomial(link = "logit"), data = selected_data)
-
-step_modelF = step(null_model, scope = list(lower = null_model, upper = model), 
-                   direction = "forward")
-```
-
-    ## Start:  AIC=3446.68
-    ## status ~ 1
-    ## 
-    ##                               Df Deviance    AIC
-    ## + factor(progesterone_status)  1   3335.1 3339.1
-    ## + factor(estrogen_status)      1   3338.7 3342.7
-    ## + factor(differentiate)        3   3337.3 3345.3
-    ## + factor(t_stage)              3   3349.2 3357.2
-    ## + factor(a_stage)              1   3415.7 3419.7
-    ## + factor(race)                 2   3418.9 3424.9
-    ## + factor(marital_status)       4   3419.2 3429.2
-    ## + age                          1   3432.0 3436.0
-    ## + regional_node_examined       1   3439.9 3443.9
-    ## <none>                             3444.7 3446.7
-    ## 
-    ## Step:  AIC=3339.06
-    ## status ~ factor(progesterone_status)
-    ## 
-    ##                           Df Deviance    AIC
-    ## + factor(t_stage)          3   3248.1 3258.1
-    ## + factor(differentiate)    3   3260.4 3270.4
-    ## + factor(estrogen_status)  1   3304.1 3310.1
-    ## + factor(a_stage)          1   3308.4 3314.4
-    ## + factor(race)             2   3311.4 3319.4
-    ## + factor(marital_status)   4   3313.9 3325.9
-    ## + age                      1   3323.6 3329.6
-    ## + regional_node_examined   1   3331.0 3337.0
-    ## <none>                         3335.1 3339.1
-    ## 
-    ## Step:  AIC=3258.09
-    ## status ~ factor(progesterone_status) + factor(t_stage)
-    ## 
-    ##                           Df Deviance    AIC
-    ## + factor(differentiate)    3   3191.0 3207.0
-    ## + factor(estrogen_status)  1   3221.1 3233.1
-    ## + factor(race)             2   3223.8 3237.8
-    ## + age                      1   3232.6 3244.6
-    ## + factor(marital_status)   4   3229.3 3247.3
-    ## + factor(a_stage)          1   3240.9 3252.9
-    ## <none>                         3248.1 3258.1
-    ## + regional_node_examined   1   3246.9 3258.9
-    ## 
-    ## Step:  AIC=3206.97
-    ## status ~ factor(progesterone_status) + factor(t_stage) + factor(differentiate)
-    ## 
-    ##                           Df Deviance    AIC
-    ## + age                      1   3168.2 3186.2
-    ## + factor(race)             2   3171.0 3191.0
-    ## + factor(estrogen_status)  1   3174.9 3192.9
-    ## + factor(marital_status)   4   3172.3 3196.3
-    ## + factor(a_stage)          1   3183.9 3201.9
-    ## <none>                         3191.0 3207.0
-    ## + regional_node_examined   1   3190.6 3208.6
-    ## 
-    ## Step:  AIC=3186.15
-    ## status ~ factor(progesterone_status) + factor(t_stage) + factor(differentiate) + 
-    ##     age
-    ## 
-    ##                           Df Deviance    AIC
-    ## + factor(estrogen_status)  1   3148.4 3168.4
-    ## + factor(race)             2   3148.3 3170.3
-    ## + factor(marital_status)   4   3152.5 3178.5
-    ## + factor(a_stage)          1   3160.5 3180.5
-    ## <none>                         3168.2 3186.2
-    ## + regional_node_examined   1   3167.6 3187.6
-    ## 
-    ## Step:  AIC=3168.38
-    ## status ~ factor(progesterone_status) + factor(t_stage) + factor(differentiate) + 
-    ##     age + factor(estrogen_status)
-    ## 
-    ##                          Df Deviance    AIC
-    ## + factor(race)            2   3128.8 3152.7
-    ## + factor(marital_status)  4   3132.6 3160.6
-    ## + factor(a_stage)         1   3141.7 3163.7
-    ## <none>                        3148.4 3168.4
-    ## + regional_node_examined  1   3148.1 3170.1
-    ## 
-    ## Step:  AIC=3152.75
-    ## status ~ factor(progesterone_status) + factor(t_stage) + factor(differentiate) + 
-    ##     age + factor(estrogen_status) + factor(race)
-    ## 
-    ##                          Df Deviance    AIC
-    ## + factor(a_stage)         1   3121.8 3147.8
-    ## + factor(marital_status)  4   3116.5 3148.5
-    ## <none>                        3128.8 3152.8
-    ## + regional_node_examined  1   3128.4 3154.4
-    ## + factor(race):age        2   3127.6 3155.6
-    ## 
-    ## Step:  AIC=3147.85
-    ## status ~ factor(progesterone_status) + factor(t_stage) + factor(differentiate) + 
-    ##     age + factor(estrogen_status) + factor(race) + factor(a_stage)
-    ## 
-    ##                          Df Deviance    AIC
-    ## + factor(marital_status)  4   3110.0 3144.0
-    ## <none>                        3121.8 3147.8
-    ## + regional_node_examined  1   3121.7 3149.7
-    ## + factor(race):age        2   3121.0 3151.0
-    ## 
-    ## Step:  AIC=3143.97
-    ## status ~ factor(progesterone_status) + factor(t_stage) + factor(differentiate) + 
-    ##     age + factor(estrogen_status) + factor(race) + factor(a_stage) + 
-    ##     factor(marital_status)
-    ## 
-    ##                                       Df Deviance    AIC
-    ## <none>                                     3110.0 3144.0
-    ## + regional_node_examined               1   3109.8 3145.8
-    ## + factor(race):age                     2   3109.1 3147.1
-    ## + factor(marital_status):age           4   3107.0 3149.0
-    ## + factor(marital_status):factor(race)  8   3099.0 3149.0
-
-``` r
-step_model = step(model, direction = "backward")
-```
-
-    ## Start:  AIC=3156.39
-    ## status ~ (factor(marital_status) * factor(race) * age + factor(t_stage) + 
-    ##     factor(differentiate) + factor(a_stage) + factor(estrogen_status) + 
-    ##     factor(progesterone_status) + regional_node_examined)
-    ## 
-    ##                                           Df Deviance    AIC
-    ## - regional_node_examined                   1   3076.6 3154.6
-    ## <none>                                         3076.4 3156.4
-    ## - factor(marital_status):factor(race):age  8   3093.2 3157.2
-    ## - factor(a_stage)                          1   3082.6 3160.6
-    ## - factor(estrogen_status)                  1   3095.4 3173.4
-    ## - factor(progesterone_status)              1   3098.2 3176.2
-    ## - factor(differentiate)                    3   3124.5 3198.5
-    ## - factor(t_stage)                          3   3129.9 3203.9
-    ## 
-    ## Step:  AIC=3154.58
-    ## status ~ factor(marital_status) + factor(race) + age + factor(t_stage) + 
-    ##     factor(differentiate) + factor(a_stage) + factor(estrogen_status) + 
-    ##     factor(progesterone_status) + factor(marital_status):factor(race) + 
-    ##     factor(marital_status):age + factor(race):age + factor(marital_status):factor(race):age
-    ## 
-    ##                                           Df Deviance    AIC
-    ## <none>                                         3076.6 3154.6
-    ## - factor(marital_status):factor(race):age  8   3093.4 3155.5
-    ## - factor(a_stage)                          1   3083.0 3159.0
-    ## - factor(estrogen_status)                  1   3095.8 3171.8
-    ## - factor(progesterone_status)              1   3098.2 3174.3
-    ## - factor(differentiate)                    3   3125.3 3197.3
-    ## - factor(t_stage)                          3   3131.0 3203.0
-
-``` r
-summary(step_model)
-```
-
-    ## 
-    ## Call:
-    ## glm(formula = status ~ factor(marital_status) + factor(race) + 
-    ##     age + factor(t_stage) + factor(differentiate) + factor(a_stage) + 
-    ##     factor(estrogen_status) + factor(progesterone_status) + factor(marital_status):factor(race) + 
-    ##     factor(marital_status):age + factor(race):age + factor(marital_status):factor(race):age, 
-    ##     family = binomial(link = "logit"), data = selected_data)
-    ## 
-    ## Coefficients:
-    ##                                             Estimate Std. Error z value
-    ## (Intercept)                                1.271e+00  6.485e-01   1.961
-    ## factor(marital_status)1                    6.317e-01  9.289e-01   0.680
-    ## factor(marital_status)2                   -1.037e+00  9.951e-01  -1.042
-    ## factor(marital_status)3                    2.227e+00  2.146e+00   1.037
-    ## factor(marital_status)4                   -3.781e+00  2.901e+00  -1.303
-    ## factor(race)1                             -7.677e-02  1.722e+00  -0.045
-    ## factor(race)2                              4.380e-01  1.535e+00   0.285
-    ## age                                       -2.783e-02  7.322e-03  -3.801
-    ## factor(t_stage)1                          -5.459e-01  1.098e-01  -4.973
-    ## factor(t_stage)2                          -8.556e-01  1.420e-01  -6.025
-    ## factor(t_stage)3                          -1.333e+00  2.605e-01  -5.119
-    ## factor(differentiate)1                     9.677e-01  5.045e-01   1.918
-    ## factor(differentiate)2                     1.451e+00  5.037e-01   2.880
-    ## factor(differentiate)3                     2.044e+00  5.286e-01   3.867
-    ## factor(a_stage)1                          -6.856e-01  2.643e-01  -2.594
-    ## factor(estrogen_status)1                   7.602e-01  1.725e-01   4.407
-    ## factor(progesterone_status)1               6.004e-01  1.253e-01   4.792
-    ## factor(marital_status)1:factor(race)1     -2.678e+00  2.297e+00  -1.166
-    ## factor(marital_status)2:factor(race)1      6.069e+00  3.872e+00   1.567
-    ## factor(marital_status)3:factor(race)1     -3.501e+00  5.635e+00  -0.621
-    ## factor(marital_status)4:factor(race)1      1.215e+00  6.719e+00   0.181
-    ## factor(marital_status)1:factor(race)2     -4.330e+00  2.834e+00  -1.528
-    ## factor(marital_status)2:factor(race)2     -8.131e+00  4.002e+00  -2.032
-    ## factor(marital_status)3:factor(race)2     -2.275e+00  9.713e+00  -0.234
-    ## factor(marital_status)4:factor(race)2     -5.236e+02  9.455e+03  -0.055
-    ## factor(marital_status)1:age               -1.122e-02  1.691e-02  -0.664
-    ## factor(marital_status)2:age                1.432e-02  1.770e-02   0.809
-    ## factor(marital_status)3:age               -3.794e-02  3.421e-02  -1.109
-    ## factor(marital_status)4:age                5.435e-02  5.585e-02   0.973
-    ## factor(race)1:age                         -4.100e-04  3.180e-02  -0.013
-    ## factor(race)2:age                          4.408e-03  2.893e-02   0.152
-    ## factor(marital_status)1:factor(race)1:age  3.459e-02  4.344e-02   0.796
-    ## factor(marital_status)2:factor(race)1:age -1.112e-01  6.680e-02  -1.665
-    ## factor(marital_status)3:factor(race)1:age  4.799e-02  9.152e-02   0.524
-    ## factor(marital_status)4:factor(race)1:age -3.582e-02  1.299e-01  -0.276
-    ## factor(marital_status)1:factor(race)2:age  6.900e-02  5.543e-02   1.245
-    ## factor(marital_status)2:factor(race)2:age  1.644e-01  8.578e-02   1.916
-    ## factor(marital_status)3:factor(race)2:age  1.378e-02  1.537e-01   0.090
-    ## factor(marital_status)4:factor(race)2:age  1.214e+01  2.182e+02   0.056
-    ##                                           Pr(>|z|)    
-    ## (Intercept)                               0.049937 *  
-    ## factor(marital_status)1                   0.496498    
-    ## factor(marital_status)2                   0.297407    
-    ## factor(marital_status)3                   0.299569    
-    ## factor(marital_status)4                   0.192475    
-    ## factor(race)1                             0.964437    
-    ## factor(race)2                             0.775404    
-    ## age                                       0.000144 ***
-    ## factor(t_stage)1                          6.61e-07 ***
-    ## factor(t_stage)2                          1.69e-09 ***
-    ## factor(t_stage)3                          3.08e-07 ***
-    ## factor(differentiate)1                    0.055100 .  
-    ## factor(differentiate)2                    0.003972 ** 
-    ## factor(differentiate)3                    0.000110 ***
-    ## factor(a_stage)1                          0.009482 ** 
-    ## factor(estrogen_status)1                  1.05e-05 ***
-    ## factor(progesterone_status)1              1.65e-06 ***
-    ## factor(marital_status)1:factor(race)1     0.243624    
-    ## factor(marital_status)2:factor(race)1     0.117019    
-    ## factor(marital_status)3:factor(race)1     0.534456    
-    ## factor(marital_status)4:factor(race)1     0.856488    
-    ## factor(marital_status)1:factor(race)2     0.126482    
-    ## factor(marital_status)2:factor(race)2     0.042193 *  
-    ## factor(marital_status)3:factor(race)2     0.814799    
-    ## factor(marital_status)4:factor(race)2     0.955836    
-    ## factor(marital_status)1:age               0.506909    
-    ## factor(marital_status)2:age               0.418311    
-    ## factor(marital_status)3:age               0.267417    
-    ## factor(marital_status)4:age               0.330444    
-    ## factor(race)1:age                         0.989713    
-    ## factor(race)2:age                         0.878918    
-    ## factor(marital_status)1:factor(race)1:age 0.425893    
-    ## factor(marital_status)2:factor(race)1:age 0.095947 .  
-    ## factor(marital_status)3:factor(race)1:age 0.600024    
-    ## factor(marital_status)4:factor(race)1:age 0.782737    
-    ## factor(marital_status)1:factor(race)2:age 0.213238    
-    ## factor(marital_status)2:factor(race)2:age 0.055323 .  
-    ## factor(marital_status)3:factor(race)2:age 0.928552    
-    ## factor(marital_status)4:factor(race)2:age 0.955638    
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-    ## 
-    ## (Dispersion parameter for binomial family taken to be 1)
-    ## 
-    ##     Null deviance: 3444.7  on 4023  degrees of freedom
-    ## Residual deviance: 3076.6  on 3985  degrees of freedom
-    ## AIC: 3154.6
-    ## 
-    ## Number of Fisher Scoring iterations: 13
-
-``` r
-summary(model)
-```
-
-    ## 
-    ## Call:
-    ## glm(formula = status ~ (factor(marital_status) * factor(race) * 
-    ##     age + factor(t_stage) + factor(differentiate) + factor(a_stage) + 
-    ##     factor(estrogen_status) + factor(progesterone_status) + regional_node_examined), 
-    ##     family = binomial(link = "logit"), data = selected_data)
-    ## 
-    ## Coefficients:
-    ##                                             Estimate Std. Error z value
-    ## (Intercept)                                1.311e+00  6.553e-01   2.000
-    ## factor(marital_status)1                    6.278e-01  9.291e-01   0.676
-    ## factor(marital_status)2                   -1.033e+00  9.954e-01  -1.038
-    ## factor(marital_status)3                    2.227e+00  2.146e+00   1.038
-    ## factor(marital_status)4                   -3.822e+00  2.903e+00  -1.317
-    ## factor(race)1                             -7.385e-02  1.722e+00  -0.043
-    ## factor(race)2                              4.289e-01  1.535e+00   0.279
-    ## age                                       -2.790e-02  7.325e-03  -3.808
-    ## factor(t_stage)1                          -5.425e-01  1.101e-01  -4.928
-    ## factor(t_stage)2                          -8.503e-01  1.425e-01  -5.967
-    ## factor(t_stage)3                          -1.331e+00  2.604e-01  -5.110
-    ## factor(differentiate)1                     9.687e-01  5.051e-01   1.918
-    ## factor(differentiate)2                     1.451e+00  5.043e-01   2.877
-    ## factor(differentiate)3                     2.040e+00  5.292e-01   3.854
-    ## factor(a_stage)1                          -6.778e-01  2.647e-01  -2.560
-    ## factor(estrogen_status)1                   7.568e-01  1.727e-01   4.383
-    ## factor(progesterone_status)1               6.018e-01  1.253e-01   4.802
-    ## regional_node_examined                    -2.482e-03  5.718e-03  -0.434
-    ## factor(marital_status)1:factor(race)1     -2.679e+00  2.297e+00  -1.166
-    ## factor(marital_status)2:factor(race)1      5.980e+00  3.870e+00   1.545
-    ## factor(marital_status)3:factor(race)1     -3.459e+00  5.635e+00  -0.614
-    ## factor(marital_status)4:factor(race)1      1.253e+00  6.717e+00   0.187
-    ## factor(marital_status)1:factor(race)2     -4.322e+00  2.830e+00  -1.527
-    ## factor(marital_status)2:factor(race)2     -8.151e+00  4.010e+00  -2.033
-    ## factor(marital_status)3:factor(race)2     -2.267e+00  9.723e+00  -0.233
-    ## factor(marital_status)4:factor(race)2     -5.241e+02  9.440e+03  -0.056
-    ## factor(marital_status)1:age               -1.118e-02  1.691e-02  -0.661
-    ## factor(marital_status)2:age                1.426e-02  1.770e-02   0.806
-    ## factor(marital_status)3:age               -3.793e-02  3.421e-02  -1.109
-    ## factor(marital_status)4:age                5.514e-02  5.588e-02   0.987
-    ## factor(race)1:age                         -5.037e-04  3.181e-02  -0.016
-    ## factor(race)2:age                          4.579e-03  2.894e-02   0.158
-    ## factor(marital_status)1:factor(race)1:age  3.461e-02  4.344e-02   0.797
-    ## factor(marital_status)2:factor(race)1:age -1.096e-01  6.680e-02  -1.640
-    ## factor(marital_status)3:factor(race)1:age  4.738e-02  9.152e-02   0.518
-    ## factor(marital_status)4:factor(race)1:age -3.648e-02  1.299e-01  -0.281
-    ## factor(marital_status)1:factor(race)2:age  6.894e-02  5.535e-02   1.246
-    ## factor(marital_status)2:factor(race)2:age  1.649e-01  8.596e-02   1.918
-    ## factor(marital_status)3:factor(race)2:age  1.348e-02  1.538e-01   0.088
-    ## factor(marital_status)4:factor(race)2:age  1.215e+01  2.179e+02   0.056
-    ##                                           Pr(>|z|)    
-    ## (Intercept)                               0.045470 *  
-    ## factor(marital_status)1                   0.499255    
-    ## factor(marital_status)2                   0.299276    
-    ## factor(marital_status)3                   0.299489    
-    ## factor(marital_status)4                   0.187997    
-    ## factor(race)1                             0.965794    
-    ## factor(race)2                             0.779987    
-    ## age                                       0.000140 ***
-    ## factor(t_stage)1                          8.31e-07 ***
-    ## factor(t_stage)2                          2.42e-09 ***
-    ## factor(t_stage)3                          3.22e-07 ***
-    ## factor(differentiate)1                    0.055119 .  
-    ## factor(differentiate)2                    0.004009 ** 
-    ## factor(differentiate)3                    0.000116 ***
-    ## factor(a_stage)1                          0.010457 *  
-    ## factor(estrogen_status)1                  1.17e-05 ***
-    ## factor(progesterone_status)1              1.57e-06 ***
-    ## regional_node_examined                    0.664228    
-    ## factor(marital_status)1:factor(race)1     0.243529    
-    ## factor(marital_status)2:factor(race)1     0.122311    
-    ## factor(marital_status)3:factor(race)1     0.539294    
-    ## factor(marital_status)4:factor(race)1     0.851984    
-    ## factor(marital_status)1:factor(race)2     0.126692    
-    ## factor(marital_status)2:factor(race)2     0.042056 *  
-    ## factor(marital_status)3:factor(race)2     0.815622    
-    ## factor(marital_status)4:factor(race)2     0.955722    
-    ## factor(marital_status)1:age               0.508740    
-    ## factor(marital_status)2:age               0.420393    
-    ## factor(marital_status)3:age               0.267549    
-    ## factor(marital_status)4:age               0.323792    
-    ## factor(race)1:age                         0.987365    
-    ## factor(race)2:age                         0.874308    
-    ## factor(marital_status)1:factor(race)1:age 0.425519    
-    ## factor(marital_status)2:factor(race)1:age 0.100931    
-    ## factor(marital_status)3:factor(race)1:age 0.604679    
-    ## factor(marital_status)4:factor(race)1:age 0.778767    
-    ## factor(marital_status)1:factor(race)2:age 0.212913    
-    ## factor(marital_status)2:factor(race)2:age 0.055112 .  
-    ## factor(marital_status)3:factor(race)2:age 0.930158    
-    ## factor(marital_status)4:factor(race)2:age 0.955524    
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-    ## 
-    ## (Dispersion parameter for binomial family taken to be 1)
-    ## 
-    ##     Null deviance: 3444.7  on 4023  degrees of freedom
-    ## Residual deviance: 3076.4  on 3984  degrees of freedom
-    ## AIC: 3156.4
-    ## 
-    ## Number of Fisher Scoring iterations: 13
-
-``` r
-summary(step_modelF)
-```
-
-    ## 
-    ## Call:
-    ## glm(formula = status ~ factor(progesterone_status) + factor(t_stage) + 
-    ##     factor(differentiate) + age + factor(estrogen_status) + factor(race) + 
-    ##     factor(a_stage) + factor(marital_status), family = binomial(link = "logit"), 
-    ##     data = selected_data)
-    ## 
-    ## Coefficients:
-    ##                               Estimate Std. Error z value Pr(>|z|)    
-    ## (Intercept)                   1.247325   0.585633   2.130 0.033182 *  
-    ## factor(progesterone_status)1  0.604273   0.124155   4.867 1.13e-06 ***
-    ## factor(t_stage)1             -0.555291   0.109031  -5.093 3.52e-07 ***
-    ## factor(t_stage)2             -0.860916   0.141159  -6.099 1.07e-09 ***
-    ## factor(t_stage)3             -1.322137   0.257347  -5.138 2.78e-07 ***
-    ## factor(differentiate)1        0.958536   0.497718   1.926 0.054122 .  
-    ## factor(differentiate)2        1.434966   0.496810   2.888 0.003873 ** 
-    ## factor(differentiate)3        2.013723   0.521610   3.861 0.000113 ***
-    ## age                          -0.026101   0.005468  -4.774 1.81e-06 ***
-    ## factor(estrogen_status)1      0.742459   0.170666   4.350 1.36e-05 ***
-    ## factor(race)1                -0.514662   0.156597  -3.287 0.001014 ** 
-    ## factor(race)2                 0.413410   0.199001   2.077 0.037762 *  
-    ## factor(a_stage)1             -0.684124   0.259946  -2.632 0.008494 ** 
-    ## factor(marital_status)1      -0.152737   0.131011  -1.166 0.243681    
-    ## factor(marital_status)2      -0.259068   0.136832  -1.893 0.058314 .  
-    ## factor(marital_status)3      -0.285691   0.185757  -1.538 0.124054    
-    ## factor(marital_status)4      -1.010059   0.353149  -2.860 0.004234 ** 
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-    ## 
-    ## (Dispersion parameter for binomial family taken to be 1)
-    ## 
-    ##     Null deviance: 3444.7  on 4023  degrees of freedom
-    ## Residual deviance: 3110.0  on 4007  degrees of freedom
-    ## AIC: 3144
-    ## 
-    ## Number of Fisher Scoring iterations: 5
-
-``` r
-anova(model,step_model,test="Chisq")
-```
-
-    ## Analysis of Deviance Table
-    ## 
-    ## Model 1: status ~ (factor(marital_status) * factor(race) * age + factor(t_stage) + 
-    ##     factor(differentiate) + factor(a_stage) + factor(estrogen_status) + 
-    ##     factor(progesterone_status) + regional_node_examined)
-    ## Model 2: status ~ factor(marital_status) + factor(race) + age + factor(t_stage) + 
-    ##     factor(differentiate) + factor(a_stage) + factor(estrogen_status) + 
-    ##     factor(progesterone_status) + factor(marital_status):factor(race) + 
-    ##     factor(marital_status):age + factor(race):age + factor(marital_status):factor(race):age
-    ##   Resid. Df Resid. Dev Df Deviance Pr(>Chi)
-    ## 1      3984     3076.4                     
-    ## 2      3985     3076.6 -1 -0.18784   0.6647
-
-``` r
-#step_F better than step
-```
-
-# Pairs plot
-
-# Use `windows` for windows system / `quartz` for macos system
-
-# Use `quartz(width = 12, height = 12)` to open the window
-
-# Use `dev.off()` to close the window
-
-``` r
-if (!dir.exists("plots")) {
-    dir.create("plots")
-}
-
-png("plots/pairs_plot.png", 
-    width = 12 * 600, 
-    height = 12 * 600, 
-    res = 600)
-
-pairs(clean_data)
-```
-
-# Corr plot
-
-``` r
-png("plots/corr_plot.png", 
-    width = 12 * 600, 
-    height = 12 * 600, 
-    res = 600)
-
-corrplot(cor(clean_data), type = "upper", diag = FALSE)
-```
-
-# Plotting boxplot
-
-``` r
-plot_boxplot = function(data_vector, main_title, x_label = "") {
-  boxplot(data_vector, 
-          main = main_title, 
-          xlab = x_label, 
-          col = "lightblue")
-}
-
-png("plots/box_plot.png", 
-    width = 12 * 600, 
-    height = 12 * 600, 
-    res = 600)
-
-par(mar = c(2, 2, 2, 2))
-par(mfrow = c(4, 4))
-
-
-column_names = names(clean_data)
-for (col_name in column_names) {
-  plot_boxplot(clean_data[[col_name]], 
-               main_title = col_name, 
-               x_label = col_name)
-}
-
-
-dev.off()
-```
-
-    ## quartz_off_screen 
-    ##                 2
 
 # plotting histogram
 
@@ -846,6 +333,374 @@ dev.off()
 
     ## quartz_off_screen 
     ##                 2
+
+\#Find correlation
+
+``` r
+corplot=cor(clean_data2)
+corrplot(corplot)
+```
+
+<img src="final_project_files/figure-gfm/unnamed-chunk-7-1.png" width="90%" />
+
+``` r
+#tumor_size vs t_stage = 0.801
+#grade=differentiate =>1
+#n_stage = x6th_stage => 0.881
+#n_stage = regional positive status =>0.838073333
+selected_data = clean_data2 |>
+  select(-tumor_size, -grade,-n_stage,-regional_node_positive,-x6th_stage)
+
+corplot=cor(selected_data)
+corrplot(corplot)
+```
+
+<img src="final_project_files/figure-gfm/unnamed-chunk-7-2.png" width="90%" />
+
+\#Separate training and testing set (80% training 20% testing )
+
+``` r
+# Calculate the size of each of the data sets
+data_size <- nrow(clean_data2)
+train_size <- floor(0.8 * data_size)
+
+# Create a random sample of row indices for the training set
+train_indices <- sample(seq_len(data_size), size = train_size)
+
+# Subset the data into training and testing sets
+train_set <- clean_data2[train_indices, ]
+test_set <- clean_data2[-train_indices, ]
+```
+
+\#Forward, BackWard
+
+``` r
+selected_train = train_set |>
+  select(-tumor_size, -grade,-n_stage,-regional_node_positive,-x6th_stage)
+
+null_model = glm(status ~ 1, family = binomial(link = "logit"), data = selected_train)
+
+full_model=glm(status ~ . , family = binomial(link = "logit"), data = selected_train)
+
+
+
+step_modelF = step(null_model, scope = list(lower = null_model, upper = full_model), 
+                   direction = "forward")
+```
+
+    ## Start:  AIC=2782.19
+    ## status ~ 1
+    ## 
+    ##                          Df Deviance    AIC
+    ## + progesterone_status     1   2684.9 2688.9
+    ## + estrogen_status         1   2689.6 2693.6
+    ## + differentiate           1   2698.9 2702.9
+    ## + t_stage                 1   2705.8 2709.8
+    ## + marital_status          1   2758.5 2762.5
+    ## + a_stage                 1   2762.0 2766.0
+    ## + age                     1   2768.2 2772.2
+    ## + regional_node_examined  1   2775.9 2779.9
+    ## <none>                        2780.2 2782.2
+    ## + race                    1   2780.2 2784.2
+    ## 
+    ## Step:  AIC=2688.88
+    ## status ~ progesterone_status
+    ## 
+    ##                          Df Deviance    AIC
+    ## + t_stage                 1   2620.4 2626.4
+    ## + differentiate           1   2632.0 2638.0
+    ## + estrogen_status         1   2659.5 2665.5
+    ## + marital_status          1   2666.5 2672.5
+    ## + a_stage                 1   2668.0 2674.0
+    ## + age                     1   2674.2 2680.2
+    ## + regional_node_examined  1   2681.2 2687.2
+    ## <none>                        2684.9 2688.9
+    ## + race                    1   2684.9 2690.9
+    ## 
+    ## Step:  AIC=2626.4
+    ## status ~ progesterone_status + t_stage
+    ## 
+    ##                          Df Deviance    AIC
+    ## + differentiate           1   2578.9 2586.9
+    ## + estrogen_status         1   2597.8 2605.8
+    ## + marital_status          1   2602.2 2610.2
+    ## + age                     1   2605.3 2613.3
+    ## + a_stage                 1   2616.4 2624.4
+    ## <none>                        2620.4 2626.4
+    ## + regional_node_examined  1   2619.2 2627.2
+    ## + race                    1   2620.4 2628.4
+    ## 
+    ## Step:  AIC=2586.92
+    ## status ~ progesterone_status + t_stage + differentiate
+    ## 
+    ##                          Df Deviance    AIC
+    ## + age                     1   2557.0 2567.0
+    ## + marital_status          1   2560.7 2570.7
+    ## + estrogen_status         1   2565.2 2575.2
+    ## + a_stage                 1   2575.2 2585.2
+    ## <none>                        2578.9 2586.9
+    ## + regional_node_examined  1   2578.6 2588.6
+    ## + race                    1   2578.9 2588.9
+    ## 
+    ## Step:  AIC=2567
+    ## status ~ progesterone_status + t_stage + differentiate + age
+    ## 
+    ##                          Df Deviance    AIC
+    ## + estrogen_status         1   2539.7 2551.7
+    ## + marital_status          1   2544.1 2556.1
+    ## + a_stage                 1   2552.8 2564.8
+    ## <none>                        2557.0 2567.0
+    ## + regional_node_examined  1   2556.5 2568.5
+    ## + race                    1   2556.9 2568.9
+    ## 
+    ## Step:  AIC=2551.74
+    ## status ~ progesterone_status + t_stage + differentiate + age + 
+    ##     estrogen_status
+    ## 
+    ##                          Df Deviance    AIC
+    ## + marital_status          1   2526.1 2540.1
+    ## + a_stage                 1   2536.5 2550.5
+    ## <none>                        2539.7 2551.7
+    ## + regional_node_examined  1   2539.4 2553.4
+    ## + race                    1   2539.7 2553.7
+    ## 
+    ## Step:  AIC=2540.14
+    ## status ~ progesterone_status + t_stage + differentiate + age + 
+    ##     estrogen_status + marital_status
+    ## 
+    ##                          Df Deviance    AIC
+    ## + a_stage                 1   2522.9 2538.9
+    ## <none>                        2526.1 2540.1
+    ## + regional_node_examined  1   2525.8 2541.8
+    ## + race                    1   2526.1 2542.1
+    ## 
+    ## Step:  AIC=2538.89
+    ## status ~ progesterone_status + t_stage + differentiate + age + 
+    ##     estrogen_status + marital_status + a_stage
+    ## 
+    ##                          Df Deviance    AIC
+    ## <none>                        2522.9 2538.9
+    ## + regional_node_examined  1   2522.6 2540.6
+    ## + race                    1   2522.9 2540.9
+
+``` r
+step_model = step(full_model, direction = "backward")
+```
+
+    ## Start:  AIC=2542.62
+    ## status ~ age + race + marital_status + t_stage + differentiate + 
+    ##     a_stage + estrogen_status + progesterone_status + regional_node_examined
+    ## 
+    ##                          Df Deviance    AIC
+    ## - race                    1   2522.6 2540.6
+    ## - regional_node_examined  1   2522.9 2540.9
+    ## <none>                        2522.6 2542.6
+    ## - a_stage                 1   2525.8 2543.8
+    ## - marital_status          1   2536.3 2554.3
+    ## - estrogen_status         1   2539.4 2557.4
+    ## - progesterone_status     1   2541.4 2559.4
+    ## - age                     1   2542.3 2560.3
+    ## - differentiate           1   2558.8 2576.8
+    ## - t_stage                 1   2566.8 2584.8
+    ## 
+    ## Step:  AIC=2540.62
+    ## status ~ age + marital_status + t_stage + differentiate + a_stage + 
+    ##     estrogen_status + progesterone_status + regional_node_examined
+    ## 
+    ##                          Df Deviance    AIC
+    ## - regional_node_examined  1   2522.9 2538.9
+    ## <none>                        2522.6 2540.6
+    ## - a_stage                 1   2525.8 2541.8
+    ## - marital_status          1   2536.3 2552.3
+    ## - estrogen_status         1   2539.4 2555.4
+    ## - progesterone_status     1   2541.4 2557.4
+    ## - age                     1   2542.5 2558.5
+    ## - differentiate           1   2558.8 2574.8
+    ## - t_stage                 1   2566.8 2582.8
+    ## 
+    ## Step:  AIC=2538.89
+    ## status ~ age + marital_status + t_stage + differentiate + a_stage + 
+    ##     estrogen_status + progesterone_status
+    ## 
+    ##                       Df Deviance    AIC
+    ## <none>                     2522.9 2538.9
+    ## - a_stage              1   2526.1 2540.1
+    ## - marital_status       1   2536.5 2550.5
+    ## - estrogen_status      1   2539.9 2553.9
+    ## - progesterone_status  1   2541.6 2555.6
+    ## - age                  1   2542.7 2556.7
+    ## - differentiate        1   2559.8 2573.8
+    ## - t_stage              1   2567.8 2581.8
+
+``` r
+summary(step_model)
+```
+
+    ## 
+    ## Call:
+    ## glm(formula = status ~ age + marital_status + t_stage + differentiate + 
+    ##     a_stage + estrogen_status + progesterone_status, family = binomial(link = "logit"), 
+    ##     data = selected_train)
+    ## 
+    ## Coefficients:
+    ##                      Estimate Std. Error z value Pr(>|z|)    
+    ## (Intercept)          1.570637   0.359045   4.374 1.22e-05 ***
+    ## age                 -0.026116   0.005936  -4.400 1.08e-05 ***
+    ## marital_status      -0.180202   0.048001  -3.754 0.000174 ***
+    ## t_stage             -0.444968   0.066122  -6.729 1.70e-11 ***
+    ## differentiate        0.510408   0.084940   6.009 1.87e-09 ***
+    ## a_stage             -0.506600   0.275308  -1.840 0.065750 .  
+    ## estrogen_status      0.789337   0.190743   4.138 3.50e-05 ***
+    ## progesterone_status  0.617193   0.138443   4.458 8.27e-06 ***
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## (Dispersion parameter for binomial family taken to be 1)
+    ## 
+    ##     Null deviance: 2780.2  on 3218  degrees of freedom
+    ## Residual deviance: 2522.9  on 3211  degrees of freedom
+    ## AIC: 2538.9
+    ## 
+    ## Number of Fisher Scoring iterations: 5
+
+``` r
+summary(step_modelF)
+```
+
+    ## 
+    ## Call:
+    ## glm(formula = status ~ progesterone_status + t_stage + differentiate + 
+    ##     age + estrogen_status + marital_status + a_stage, family = binomial(link = "logit"), 
+    ##     data = selected_train)
+    ## 
+    ## Coefficients:
+    ##                      Estimate Std. Error z value Pr(>|z|)    
+    ## (Intercept)          1.570637   0.359045   4.374 1.22e-05 ***
+    ## progesterone_status  0.617193   0.138443   4.458 8.27e-06 ***
+    ## t_stage             -0.444968   0.066122  -6.729 1.70e-11 ***
+    ## differentiate        0.510408   0.084940   6.009 1.87e-09 ***
+    ## age                 -0.026116   0.005936  -4.400 1.08e-05 ***
+    ## estrogen_status      0.789337   0.190743   4.138 3.50e-05 ***
+    ## marital_status      -0.180202   0.048001  -3.754 0.000174 ***
+    ## a_stage             -0.506600   0.275308  -1.840 0.065750 .  
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## (Dispersion parameter for binomial family taken to be 1)
+    ## 
+    ##     Null deviance: 2780.2  on 3218  degrees of freedom
+    ## Residual deviance: 2522.9  on 3211  degrees of freedom
+    ## AIC: 2538.9
+    ## 
+    ## Number of Fisher Scoring iterations: 5
+
+``` r
+anova(step_model,step_modelF,test="Chisq")
+```
+
+    ## Analysis of Deviance Table
+    ## 
+    ## Model 1: status ~ age + marital_status + t_stage + differentiate + a_stage + 
+    ##     estrogen_status + progesterone_status
+    ## Model 2: status ~ progesterone_status + t_stage + differentiate + age + 
+    ##     estrogen_status + marital_status + a_stage
+    ##   Resid. Df Resid. Dev Df Deviance Pr(>Chi)
+    ## 1      3211     2522.9                     
+    ## 2      3211     2522.9  0        0
+
+``` r
+test_predictions_log_oddsStep <- predict(step_model, newdata  = (test_set),type='response')
+
+test_predictions_probStep <- plogis(test_predictions_log_oddsStep)
+
+roc_curveStep <- roc(response = (test_set$status), predictor = as.numeric(test_predictions_probStep))
+```
+
+    ## Setting levels: control = 0, case = 1
+
+    ## Setting direction: controls < cases
+
+``` r
+auc(roc_curveStep)
+```
+
+    ## Area under the curve: 0.7
+
+``` r
+if (!dir.exists("plots")) {
+    dir.create("plots")
+}
+
+png("plots/pairs_plot.png", 
+    width = 12 * 600, 
+    height = 12 * 600, 
+    res = 600)
+
+pairs(clean_data)
+```
+
+# Corr plot
+
+``` r
+png("plots/corr_plot.png", 
+    width = 12 * 600, 
+    height = 12 * 600, 
+    res = 600)
+
+corrplot(cor(clean_data), type = "upper", diag = FALSE)
+```
+
+\#Elastic Net
+
+``` r
+# Prepare your data
+X <- as.matrix(train_set[, setdiff(names(train_set), "status")])  # Predictor variables
+y <- train_set$status  # Response variable
+
+lambda_seq <- 10^seq(-3, 0, by = .01)
+
+# Use cross-validation to find the optimal lambda
+cv_object <- cv.glmnet(X, y, family = "binomial", alpha = 0.5, type.measure = "class", nfolds= 5, lambda = lambda_seq)
+tibble(lambda = cv_object$lambda,
+       mean_cv_error = cv_object$cvm) %>%
+  ggplot(aes(x = lambda, y= mean_cv_error)) + 
+  geom_point()
+```
+
+<img src="final_project_files/figure-gfm/unnamed-chunk-12-1.png" width="90%" />
+
+``` r
+# Best lambda value
+best_lambda <- cv_object$lambda.min
+# Refit the model using the best lambda
+final_model <- glmnet(X, y, family = "binomial", alpha = 0.5, lambda = best_lambda)
+
+test_set2 <- test_set|> select(-status)
+test_predictions_log_odds <- predict(final_model, newx = as.matrix(test_set2))
+
+# Convert log-odds to probabilities
+test_predictions_probElastic <- plogis(test_predictions_log_odds)
+# Create the ROC curve
+roc_curve <- roc(response = as.matrix(test_set$status), predictor = as.numeric(test_predictions_probElastic) )
+```
+
+    ## Setting levels: control = 0, case = 1
+
+    ## Setting direction: controls < cases
+
+``` r
+auc(roc_curve)
+```
+
+    ## Area under the curve: 0.777
+
+``` r
+# Plot the ROC curve
+plot(roc_curve, main = "ROC Curve", col = "#1c61b6", lwd = 2)
+lines(roc_curveStep,col='yellow')
+```
+
+<img src="final_project_files/figure-gfm/unnamed-chunk-12-2.png" width="90%" />
 
 # Building a logistic regression model
 
@@ -913,7 +768,7 @@ ggplot(mydata, aes(logit, predictor.value))+
 
     ## `geom_smooth()` using formula = 'y ~ x'
 
-<img src="final_project_files/figure-gfm/unnamed-chunk-14-1.png" width="90%" />
+<img src="final_project_files/figure-gfm/unnamed-chunk-15-1.png" width="90%" />
 A graphical check of linearity can be performed using a best fit “loess”
 line. This is on the probability scale, so it is not going to be
 straight. But it should be monotonic - it should only ever go up or
@@ -931,7 +786,7 @@ Cook’s distance values. Here we label the top 3 largest values:
 plot(model2, which = 4, id.n = 3)
 ```
 
-<img src="final_project_files/figure-gfm/unnamed-chunk-15-1.png" width="90%" />
+<img src="final_project_files/figure-gfm/unnamed-chunk-16-1.png" width="90%" />
 Note that, not all outliers are influential observations. To check
 whether the data contains potential influential observations, the
 standardized residual error can be inspected. Data points with an
@@ -947,16 +802,15 @@ model.data <- augment(model2) %>%
 model.data %>% top_n(3, .cooksd)
 ```
 
-    ## # A tibble: 3 × 18
+    ## # A tibble: 3 × 17
     ##   status   age  race marital_status t_stage differentiate a_stage
     ##    <dbl> <dbl> <dbl>          <dbl>   <dbl>         <dbl>   <dbl>
-    ## 1      0    66     0              0       3             2       1
-    ## 2      0    43     2              0       2             2       0
-    ## 3      1    57     0              0       3             1       1
-    ## # ℹ 11 more variables: estrogen_status <dbl>, progesterone_status <dbl>,
-    ## #   regional_node_examined <dbl>, survival_months <dbl>, .fitted <dbl>,
-    ## #   .resid <dbl>, .hat <dbl>, .sigma <dbl>, .cooksd <dbl>, .std.resid <dbl>,
-    ## #   index <int>
+    ## 1      0    49     1              4       0             3       1
+    ## 2      1    53     0              2       3             1       1
+    ## 3      0    49     1              4       1             3       1
+    ## # ℹ 10 more variables: estrogen_status <dbl>, progesterone_status <dbl>,
+    ## #   regional_node_examined <dbl>, .fitted <dbl>, .resid <dbl>, .hat <dbl>,
+    ## #   .sigma <dbl>, .cooksd <dbl>, .std.resid <dbl>, index <int>
 
 ``` r
 # Plot the standardized residuals:
@@ -965,7 +819,7 @@ ggplot(model.data, aes(index, .std.resid)) +
   theme_bw()
 ```
 
-<img src="final_project_files/figure-gfm/unnamed-chunk-16-1.png" width="90%" />
+<img src="final_project_files/figure-gfm/unnamed-chunk-17-1.png" width="90%" />
 
 ``` r
 # Filter potential influential data points with abs(.std.res) > 3:
@@ -973,16 +827,10 @@ model.data %>%
   filter(abs(.std.resid) > 3)
 ```
 
-    ## # A tibble: 5 × 18
-    ##   status   age  race marital_status t_stage differentiate a_stage
-    ##    <dbl> <dbl> <dbl>          <dbl>   <dbl>         <dbl>   <dbl>
-    ## 1      0    51     0              0       1             2       0
-    ## 2      0    51     0              0       0             2       0
-    ## 3      0    66     0              0       0             3       0
-    ## 4      0    53     0              0       0             2       0
-    ## 5      0    68     0              0       0             2       0
-    ## # ℹ 11 more variables: estrogen_status <dbl>, progesterone_status <dbl>,
-    ## #   regional_node_examined <dbl>, survival_months <dbl>, .fitted <dbl>,
+    ## # A tibble: 0 × 17
+    ## # ℹ 17 variables: status <dbl>, age <dbl>, race <dbl>, marital_status <dbl>,
+    ## #   t_stage <dbl>, differentiate <dbl>, a_stage <dbl>, estrogen_status <dbl>,
+    ## #   progesterone_status <dbl>, regional_node_examined <dbl>, .fitted <dbl>,
     ## #   .resid <dbl>, .hat <dbl>, .sigma <dbl>, .cooksd <dbl>, .std.resid <dbl>,
     ## #   index <int>
 
@@ -1001,13 +849,11 @@ car::vif(model2)
 ```
 
     ##                    age                   race         marital_status 
-    ##               1.067349               1.016116               1.021514 
+    ##               1.059851               1.011695               1.022707 
     ##                t_stage          differentiate                a_stage 
-    ##               1.073467               1.082668               1.050899 
+    ##               1.091612               1.079492               1.076414 
     ##        estrogen_status    progesterone_status regional_node_examined 
-    ##               1.407200               1.372034               1.019442 
-    ##        survival_months 
-    ##               1.022300
+    ##               1.481269               1.433908               1.019266
 
 As a rule of thumb, a VIF value that exceeds 5 or 10 indicates a
 problematic amount of collinearity. In our example, there is no

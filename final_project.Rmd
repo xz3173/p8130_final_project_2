@@ -100,6 +100,35 @@ clean_data2$regional_node_positive = (clean_data$regional_node_positive)
 
 ```
 
+# plotting histogram
+```{r}
+plot_histogram = 
+  function(data_vector, main_title, x_label = "") {
+  hist(data_vector, 
+       main = main_title, 
+       xlab = x_label, 
+       col = "blue")
+}
+
+
+png("plots/histogram_plot.png", 
+    width = 12 * 600, 
+    height = 12 * 600, res = 600)
+
+par(mar = c(2, 2, 2, 2))
+par(mfrow = c(4, 4))
+
+
+column_names = names(clean_data)
+for (col_name in column_names) {
+  plot_histogram(clean_data[[col_name]], 
+                 main_title = col_name, 
+                 x_label = col_name)
+}
+
+dev.off()
+```
+
 #Find correlation
 ```{R}
 corplot=cor(clean_data2)
@@ -158,7 +187,6 @@ test_predictions_probStep <- plogis(test_predictions_log_oddsStep)
 roc_curveStep <- roc(response = (test_set$status), predictor = as.numeric(test_predictions_probStep))
 
 auc(roc_curveStep)
-auc(roc_curve)
 
 ```
 
@@ -196,13 +224,15 @@ y <- train_set$status  # Response variable
 
 lambda_seq <- 10^seq(-3, 0, by = .01)
 
-# Fit the LASSO logistic regression model
-lasso_model <- glmnet(X, y, family = "binomial", alpha = 0.5, lambda = lambda_seq)
 # Use cross-validation to find the optimal lambda
-cv_model <- cv.glmnet(X, y, family = "binomial", alpha = 0.5, type.measure = "class")
-plot(cv_model$lambda)
+cv_object <- cv.glmnet(X, y, family = "binomial", alpha = 0.5, type.measure = "class", nfolds= 5, lambda = lambda_seq)
+tibble(lambda = cv_object$lambda,
+       mean_cv_error = cv_object$cvm) %>%
+  ggplot(aes(x = lambda, y= mean_cv_error)) + 
+  geom_point()
+
 # Best lambda value
-best_lambda <- cv_model$lambda.min
+best_lambda <- cv_object$lambda.min
 # Refit the model using the best lambda
 final_model <- glmnet(X, y, family = "binomial", alpha = 0.5, lambda = best_lambda)
 
@@ -219,36 +249,9 @@ auc(roc_curve)
 # Plot the ROC curve
 plot(roc_curve, main = "ROC Curve", col = "#1c61b6", lwd = 2)
 lines(roc_curveStep,col='yellow')
+
 ```
 
-# plotting histogram
-```{r}
-plot_histogram = 
-  function(data_vector, main_title, x_label = "") {
-  hist(data_vector, 
-       main = main_title, 
-       xlab = x_label, 
-       col = "blue")
-}
-
-
-png("plots/histogram_plot.png", 
-    width = 12 * 600, 
-    height = 12 * 600, res = 600)
-
-par(mar = c(2, 2, 2, 2))
-par(mfrow = c(4, 4))
-
-
-column_names = names(clean_data)
-for (col_name in column_names) {
-  plot_histogram(clean_data[[col_name]], 
-                 main_title = col_name, 
-                 x_label = col_name)
-}
-
-dev.off()
-```
 
 # Building a logistic regression model
 We start by computing an example of logistic regression model using the PimaIndiansDiabetes2 [mlbench package], introduced in Chapter @ref(classification-in-r), for predicting the probability of diabetes test positivity based on clinical variables.
