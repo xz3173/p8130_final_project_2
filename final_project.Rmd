@@ -126,7 +126,9 @@ train_indices <- sample(seq_len(data_size), size = train_size)
 
 # Subset the data into training and testing sets
 train_set <- clean_data2[train_indices, ]
+train_set2<- selected_data[train_indices,]
 test_set <- clean_data2[-train_indices, ]
+test_set2 <- selected_data[-train_indices, ]
 
 ```
 
@@ -158,31 +160,6 @@ test_predictions_probStep <- plogis(test_predictions_log_oddsStep)
 roc_curveStep <- roc(response = (test_set$status), predictor = as.numeric(test_predictions_probStep))
 
 auc(roc_curveStep)
-auc(roc_curve)
-
-```
-
-```{r}
-if (!dir.exists("plots")) {
-    dir.create("plots")
-}
-
-png("plots/pairs_plot.png", 
-    width = 12 * 600, 
-    height = 12 * 600, 
-    res = 600)
-
-pairs(clean_data)
-```
-
-# Corr plot
-```{r}
-png("plots/corr_plot.png", 
-    width = 12 * 600, 
-    height = 12 * 600, 
-    res = 600)
-
-corrplot(cor(clean_data), type = "upper", diag = FALSE)
 
 ```
 
@@ -194,15 +171,18 @@ corrplot(cor(clean_data), type = "upper", diag = FALSE)
 X <- as.matrix(train_set[, setdiff(names(train_set), "status")])  # Predictor variables
 y <- train_set$status  # Response variable
 
-lambda_seq <- 10^seq(-3, 0, by = .01)
+lambda_seq <- 10^seq(-3, 0, by = .001)
 
 # Fit the LASSO logistic regression model
-lasso_model <- glmnet(X, y, family = "binomial", alpha = 0.5, lambda = lambda_seq)
 # Use cross-validation to find the optimal lambda
-cv_model <- cv.glmnet(X, y, family = "binomial", alpha = 0.5, type.measure = "class")
-plot(cv_model$lambda)
+cv_object <- cv.glmnet(X, y, family = "binomial", alpha = 0.5, type.measure = "class",nfolds=10, lambda = lambda_seq)
+
+tibble(lambda = cv_object$lambda,
+mean_cv_error = cv_object$cvm) %>%
+ggplot(aes(x = lambda, y = mean_cv_error)) +
+geom_point()
 # Best lambda value
-best_lambda <- cv_model$lambda.min
+best_lambda <- cv_object$lambda.min
 # Refit the model using the best lambda
 final_model <- glmnet(X, y, family = "binomial", alpha = 0.5, lambda = best_lambda)
 
@@ -217,9 +197,50 @@ roc_curve <- roc(response = as.matrix(test_set$status), predictor = as.numeric(t
 auc(roc_curve)
 
 # Plot the ROC curve
+
+
+#Training set without full variables
+
+
+```
+#Elastic net 2
+```{r}
+
+
+X <- as.matrix(train_set2[, setdiff(names(train_set2), "status")])  # Predictor variables
+y <- train_set$status  # Response variable
+
+lambda_seq <- 10^seq(-3, 0, by = .001)
+
+# Fit the LASSO logistic regression model
+# Use cross-validation to find the optimal lambda
+cv_object <- cv.glmnet(X, y, family = "binomial", alpha = 0.5, type.measure = "class",nfolds=10, lambda = lambda_seq)
+
+tibble(lambda = cv_object$lambda,
+mean_cv_error = cv_object$cvm) %>%
+ggplot(aes(x = lambda, y = mean_cv_error)) +
+geom_point()
+# Best lambda value
+best_lambda <- cv_object$lambda.min
+# Refit the model using the best lambda
+final_model <- glmnet(X, y, family = "binomial", alpha = 0.5, lambda = best_lambda)
+
+test_set2 <- test_set2|> select(-status)
+test_predictions_log_odds2 <- predict(final_model, newx = as.matrix(test_set2))
+
+# Convert log-odds to probabilities
+test_predictions_probElastic2 <- plogis(test_predictions_log_odds2)
+# Create the ROC curve
+roc_curvenet2 <- roc(response = as.matrix(test_set$status), predictor = as.numeric(test_predictions_probElastic2) )
+
+auc(roc_curvenet2)
+
 plot(roc_curve, main = "ROC Curve", col = "#1c61b6", lwd = 2)
 lines(roc_curveStep,col='yellow')
+lines(roc_curvenet2)
 ```
+
+
 
 # plotting histogram
 ```{r}
