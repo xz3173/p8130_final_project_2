@@ -159,8 +159,7 @@ test_set <- clean_data2[-train_indices, ]
 
 ```
 
-
-#Forward, BackWard
+# Fit a full model
 ```{R}
 
 selected_train = train_set |>
@@ -169,9 +168,48 @@ selected_train = train_set |>
 null_model = glm(status ~ 1, family = binomial(link = "logit"), data = selected_train)
 
 full_model=glm(status ~ . , family = binomial(link = "logit"), data = selected_train)
+```
 
+# Check logistic regression assumptions
 
+Binary logistic regression relies on underlying assumptions to be true:
 
+1.The outcome is a binary or dichotomous variable like yes vs no, positive vs negative, 1 vs 0.
+2.There is a linear relationship between the logit of the outcome(status) and each predictor variables. Recall that the logit function is logit(p) = log(p/(1-p)), where p is the probabilities of the outcome.
+3.There is no influential values in the continuous predictors.
+4.There is no multicollinearity among the predictors.
+
+## Checking Linearity of continuous variables to the response
+```{r}
+# Check linearity assumption using conditional residual plots
+crPlots(full_model)
+```
+
+## Checking for Influential Observations:
+Cook's Distance:
+```{r}
+# Calculate Cook's distance for the full model
+cooksd <- influence.measures(full_model)$cooks
+
+# Identify influential observations
+influential_points <- which(cooksd > 4 / length(cooksd))
+
+# Display influential points
+print(influential_points)
+```
+
+## Checking for Multicollinearity:
+```{r}
+# Check for multicollinearity using VIF
+vif_values <- car::vif(full_model)
+
+# Display VIF values
+print(vif_values)
+```
+As a rule of thumb, a VIF value that exceeds 5 or 10 indicates a problematic amount of collinearity. In our example, there is no collinearity: all variables have a value of VIF well below 5.
+
+# Using Forward, BackWard
+```{r}
 step_modelF = step(null_model, scope = list(lower = null_model, upper = full_model), 
                    direction = "forward")
 
@@ -214,7 +252,6 @@ corrplot(cor(clean_data), type = "upper", diag = FALSE)
 
 ```
 
-
 #Elastic Net
 ```{R}
 
@@ -252,9 +289,50 @@ lines(roc_curveStep,col='yellow')
 
 ```
 
+# Assess model assumptions and diagnostics
+Checking for violations of regression model assumptions, influential observations, and multicollinearity is an essential part of ensuring the reliability and validity of our logistic regression model. 
 
-# Building a logistic regression model
-We start by computing an example of logistic regression model using the PimaIndiansDiabetes2 [mlbench package], introduced in Chapter @ref(classification-in-r), for predicting the probability of diabetes test positivity based on clinical variables.
+1. Checking Linearity Assumption:
+While glmnet is based on regularization and not least squares, the linearity assumption can be assessed by examining the relationship between predicted and observed values.
+
+```{r}
+# Assuming 'final_model' is your glmnet logistic regression model
+# Plot predicted vs. observed values
+plot(predict(final_model, newx = as.matrix(test_set2), s = best_lambda, type = "response"), as.numeric(test_set$status), main = "Predicted vs. Observed")
+abline(a = 0, b = 1, col = "red")
+```
+
+2. Checking Residuals:
+Although there are no standard residuals, we can examine the differences between predicted and observed values.
+```{r}
+# Assuming 'final_model' is your glmnet logistic regression model
+residuals <- as.vector(predict(final_model, newx = as.matrix(test_set2), s = best_lambda, type = "response") - as.numeric(test_set$status))
+plot(residuals, main = "Residuals vs. Fitted Values",  xlab = "Fitted Values", ylab = "Residuals")
+```
+
+3. Checking for Multicollinearity:
+Evaluate multicollinearity using VIF (Variance Inflation Factor) to assess the relationships between predictors.
+```{r}
+# Extract coefficients from the final_model
+coefficients <- as.matrix(coef(final_model))
+
+# Extract predictors and response
+predictors <- coefficients[-1, ]
+response <- coefficients[1, ]
+
+# Combine predictors and response into a data frame
+model_data <- data.frame(response = response, predictors)
+
+# Calculate correlation matrix
+cor_matrix <- cor(predictors, predictors)
+```
+
+
+# !! (Below part is the old version part, I'm not sure if this part should be removed. But you can refence this part!)
+
+### Building a logistic regression model 
+
+We start by computing an example of logistic regression model using the selected_data, for predicting the probability of status test positivity based on clinical variables.
 ```{r}
 # Fit the logistic regression model
 model2 <-  glm(status ~., data = selected_data, 
@@ -265,7 +343,7 @@ predicted.classes <- ifelse(probabilities > 0.5, "Alive", "Dead")
 head(predicted.classes)
 ```
 
-# Check binary logistic regression assumptions
+# Check logistic regression assumptions
 
 Binary logistic regression relies on underlying assumptions to be true:
 
@@ -275,9 +353,42 @@ Binary logistic regression relies on underlying assumptions to be true:
 4.There is no high intercorrelations (i.e. multicollinearity) among the predictors.
 
 ## Logistic regression diagnostics
+1. Coefficient Path Plot:
+```{r}
+plot(final_model, xvar = "lambda")
+```
+2.Cross-Validation Plot:
+```{r}
+plot(cv_object)
+```
+3.Deviance Plot:
+```{r}
+plot(final_model, xvar = "lambda", label = TRUE)
+```
+4.Predicted vs. Observed Plot:
+```{R}
+par(mfrow = c(1, 2))
+plot(predict(final_model, s = best_lambda, newx = as.matrix(test_set2)), as.numeric(test_set$status), main = "Predicted vs. Observed")
+abline(a = 0, b = 1, col = "red")
+```
+5.Residual Analysis:
+```{r}
+residuals <- as.vector(predict(final_model, newx = as.matrix(test_set2), s = best_lambda, type = "response") - as.numeric(test_set$status))
+plot(residuals, main = "Residuals vs. Fitted Values", xlab = "Fitted Values", ylab = "Residuals")
+```
 
-### Linearity assumption
+### Linearity assumption (Not sure with this part)
 Here, we’ll check the linear relationship between continuous predictor variables and the logit of the outcome. This can be done by visually inspecting the scatter plot between each predictor and the logit values.
+```{r}
+# Refit the model using the best lambda
+final_model <- glmnet(X, y, family = "binomial", alpha = 0.5, lambda = best_lambda)
+
+test_set2 <- test_set|> select(-status)
+test_predictions_log_odds <- predict(final_model, newx = as.matrix(test_set2))
+
+# Convert log-odds to probabilities
+test_predictions_probElastic <- plogis(test_predictions_log_odds)
+```
 
 1. Remove qualitative variables from the original data frame and bind the logit values to the data:
 ```{r}
