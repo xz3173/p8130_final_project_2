@@ -1,0 +1,212 @@
+---
+title: "interaction"
+author: "Xue Zhang"
+date: "2023-12-10"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(survival)
+library(glmnet)
+library(pROC)
+```
+
+
+```{r}
+clean_data = read_csv("./data/clean_data.csv")
+new_data = read_csv("./data/new_data.csv")
+
+
+```
+
+
+
+```{r}
+# Fit a Cox proportional hazards model
+cox_model = coxph(Surv(time = survival_months, event = status) ~ age + race + marital_status + t_stage +
+                    n_stage + x6th_stage + differentiate + grade + a_stage + tumor_size +
+                    estrogen_status + progesterone_status + regional_node_examined +
+                    regional_node_positive, data = clean_data)
+
+# Summarize the model to see which factors are significant
+summary(cox_model)
+
+# You can also look for interactions by adding interaction terms to the model, 
+# but this should be done cautiously to avoid overfitting, especially with many covariates
+# Example interaction between age and t_stage
+cox_model_interaction = coxph(Surv(time = survival_months, event = status) ~ age * t_stage, data = clean_data)
+
+# Summarize the model with interaction
+summary(cox_model_interaction)
+```
+
+
+
+
+
+# Potential Interaction terms according to Common Sense
+
+Tumor Size and Stage: The impact of tumor size on survival may vary depending on the stage of the cancer. For example, a large tumor might be more significant in early stages but less so in advanced stages where other factors become more dominant.
+
+Marital Status and Age: The support network impact on survival might be more pronounced for certain age groups, indicating a possible interaction between marital status and age.
+
+
+
+
+
+# Predicting Risk of Death Using Covariates
+Build a predictive model using variables 1-14 as covariates.
+```{r}
+covariates = clean_data[, 1:14]
+outcome = clean_data$status
+
+model_data = data.frame(covariates, outcome)
+
+model = glm(outcome ~ ., data = model_data, family = "binomial")
+```
+
+# Identifying Significant Factors and Interactions
+To identify significant factors and potential interactions:
+```{r}
+summary(model)
+
+# race + age
+model_interaction = glm(outcome ~ . + race:age, data = model_data, family = "binomial")
+summary(model_interaction)
+```
+
+
+
+
+# Evaluating Model Performance and Fairness
+To evaluate model performance:
+```{r}
+# Predicting and evaluating performance
+predictions = predict(model, type = "response")
+
+roc_curve = roc(outcome, predictions)
+
+auc(roc_curve)
+```
+
+To check the performance across different racial groups and ensure fairness
+```{r}
+# Splitting data by racial groups
+data_white  = clean_data[clean_data$race == "0", ]
+data_black_other =  clean_data[clean_data$race %in% c("1", "2"), ]
+
+# Evaluate model separately for these groups
+predictions_white = predict(model, newdata = data_white, type = "response")
+roc_white = roc(data_white$status, predictions_white)
+
+predictions_black_other = predict(model, newdata = data_black_other, type = "response")
+roc_black_other = roc(data_black_other$status, predictions_black_other)
+
+# Compare AUC scores
+auc_white = auc(roc_white)
+auc_black_other = auc(roc_black_other)
+
+
+```
+
+# race : age
+
+```{r}
+# Convert numerical values to factors with appropriate labels
+clean_data$race = factor(clean_data$race,
+                         levels = c(0, 1, 2),
+                         labels = c("White", "Black", "Other"))
+
+clean_data$age = cut(clean_data$age, 
+                        breaks = c(-Inf, 30, 50, Inf),
+                        labels = c("Under 30", "30-50", "Over 50"),
+                        right = FALSE)
+
+clean_data$status = factor(clean_data$status, 
+                            levels = c(0, 1),
+                            labels = c("Dead", "Alive"))
+
+# Group and summarize the data
+summary_data_a = clean_data |>
+  group_by(age, race, status) |>
+  summarise(count = n(), .groups = "drop")
+
+# Create a bar plot
+ggplot(summary_data_a, aes(x = age, y = count, fill = status)) +
+  geom_bar(stat = "identity", position = position_dodge()) +
+  scale_fill_brewer(palette = "Set1") +
+  facet_wrap(~race, scales = "free_y") +
+  labs(title = "Age and Death Status by Race", 
+       x = "Age", 
+       y = "Count") +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        axis.text = element_text(angle = 45, hjust = 1),
+        plot.title = element_text(size = 14, face = "bold"),
+        strip.background = element_rect(fill = "lightblue"),
+        strip.text.x = element_text(size = 10, face = "bold"))
+
+
+```
+
+
+# race: marital status
+
+
+# Predicting Risk of Death Using Covariates
+Build a predictive model using variables 1-14 as covariates.
+```{r}
+covariates = clean_data[, 1:14]
+outcome = clean_data$status
+
+model_data = data.frame(covariates, outcome)
+
+model = glm(outcome ~ ., data = model_data, family = "binomial")
+```
+
+# Identifying Significant Factors and Interactions
+To identify significant factors and potential interactions:
+```{r}
+summary(model)
+
+# race + age
+race_marital_status_model_interaction = glm(outcome ~ . + race:marital_status, data = model_data, family = "binomial")
+summary(race_marital_status_model_interaction)
+```
+
+
+
+```{r}
+# Convert numerical values to factors with appropriate labels
+
+
+clean_data$marital_status = factor(clean_data$marital_status, 
+                                    levels = c(0, 1, 2, 3, 4),
+                                    labels = c("Married", "Single", "Divorced", "Widowed", "Seperated"))
+
+
+# Group and summarize the data
+summary_data_b = clean_data |>
+  group_by(marital_status, race, status) |>
+  summarise(count = n(), .groups = "drop")
+
+# Create a bar plot
+ggplot(summary_data_b, aes(x = marital_status, y = count, fill = status)) +
+  geom_bar(stat = "identity", position = position_dodge()) +
+  scale_fill_brewer(palette = "Set1") +
+  facet_wrap(~race, scales = "free_y") +
+  labs(title = "Marital Status vs Death Status by Race", 
+       x = "Marital Status", 
+       y = "Count") +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        axis.text = element_text(angle = 45, hjust = 1),
+        plot.title = element_text(size = 14, face = "bold"),
+        strip.background = element_rect(fill = "lightblue"),
+        strip.text.x = element_text(size = 10, face = "bold"))
+
+
+```
+
+The bar chart illustrates the count of individuals by marital status and their survival status, segmented by race. It's evident that for the White and Other race categories, the majority of individuals are married and alive, while the Black race category has a higher count of single individuals who are alive. Across all race categories, the number of deceased individuals is significantly lower than those alive, with the widowed status showing a higher count of deceased individuals particularly in the White race category.
