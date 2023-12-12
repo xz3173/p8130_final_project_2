@@ -577,6 +577,15 @@ summary(model_interaction)</code></pre>
 ## AIC: 3027.9
 ## 
 ## Number of Fisher Scoring iterations: 5</code></pre>
+<p><strong>age:race Interaction Term: The coefficient for this term
+shows how the effect of age on the outcome varies across different race
+groups. However, this interaction term is not statistically significant
+(p = 0.210452), suggesting that the effect of age on the outcome does
+not significantly differ across races in your dataset.</strong></p>
+<p><strong>Model Comparison: Comparing the AIC of both models (3027.4
+vs. 3027.9), the initial model without the interaction term seems to
+have a slightly better fit, although the difference is very
+minimal.</strong></p>
 </div>
 <div id="evaluating-model-performance-and-fairness" class="section level1">
 <h1>Evaluating Model Performance and Fairness</h1>
@@ -589,6 +598,14 @@ roc_curve = roc(outcome, predictions)</code></pre>
 <pre><code>## Setting direction: controls &lt; cases</code></pre>
 <pre class="r"><code>auc(roc_curve)</code></pre>
 <pre><code>## Area under the curve: 0.7455</code></pre>
+<p><strong>The AUC value is 0.7455. This metric ranges from 0 to 1,
+where an AUC of 0.5 suggests no discriminative ability (equivalent to
+random guessing), and an AUC of 1 indicates perfect
+discrimination.</strong></p>
+<p><strong>An AUC of 0.7455 suggests that your model has a good ability
+to distinguish between the case and control groups. This means that, in
+general, the model assigns higher probabilities to actual cases than to
+controls.</strong></p>
 <p>To check the performance across different racial groups and ensure
 fairness</p>
 <pre class="r"><code># Splitting data by racial groups
@@ -732,6 +749,12 @@ summary(race_marital_status_model_interaction)</code></pre>
 ## AIC: 3026
 ## 
 ## Number of Fisher Scoring iterations: 5</code></pre>
+<p><strong>The interaction raceOther:marital_status is significant,
+suggesting that the combined effect of being of ‘Other’ race and marital
+status is different than their individual effects.</strong></p>
+<p><strong>Model Comparison: The AIC for this model is 3026, slightly
+lower than the initial model, suggesting a marginally better fit with
+the inclusion of the interaction terms.</strong></p>
 <pre class="r"><code># Convert numerical values to factors with appropriate labels
 
 
