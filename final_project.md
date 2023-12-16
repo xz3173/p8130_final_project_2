@@ -3,12 +3,19 @@ Final Project
 
 ``` r
 library(gtsummary)
+```
+
+    ## #BlackLivesMatter
+
+``` r
 library(tidyverse)
 ```
 
     ## Warning: package 'tidyverse' was built under R version 4.1.3
 
-    ## -- Attaching packages --------------------------------------- tidyverse 1.3.2 --
+    ## -- Attaching packages --------------------------------------- tidyverse 1.3.2
+    ## --
+
     ## v ggplot2 3.3.6     v purrr   1.0.1
     ## v tibble  3.2.1     v dplyr   1.1.2
     ## v tidyr   1.2.1     v stringr 1.4.0
@@ -150,14 +157,7 @@ data = read_csv("./data/data.csv") |>
     ## i Specify the column types or set `show_col_types = FALSE` to quiet this message.
 
 ``` r
-#summary(data)
 data=data|>select(-survival_months)
-#str(data)
-```
-
-``` r
-# Check for missing data
-#colSums(is.na(data))
 ```
 
 ``` r
@@ -199,39 +199,6 @@ clean_data2$regional_node_examined = log(clean_data$regional_node_examined)
 clean_data2$regional_node_positive = log(clean_data$regional_node_positive)
 ```
 
-# plotting histogram
-
-``` r
-plot_histogram = 
-  function(data_vector, main_title, x_label = "") {
-  hist(data_vector, 
-       main = main_title, 
-       xlab = x_label, 
-       col = "blue")
-}
-
-
-png("plots/histogram_plot.png", 
-    width = 12 * 600, 
-    height = 12 * 600, res = 600)
-
-par(mar = c(2, 2, 2, 2))
-par(mfrow = c(4, 4))
-
-
-column_names = names(clean_data)
-for (col_name in column_names) {
-  plot_histogram(clean_data[[col_name]], 
-                 main_title = col_name, 
-                 x_label = col_name)
-}
-
-dev.off()
-```
-
-    ## png 
-    ##   2
-
 \#Find correlation
 
 ``` r
@@ -239,7 +206,7 @@ corplot=cor(clean_data2)
 corrplot(corplot)
 ```
 
-<img src="final_project_files/figure-gfm/unnamed-chunk-7-1.png" width="90%" />
+<img src="final_project_files/figure-gfm/unnamed-chunk-5-1.png" width="90%" />
 
 ``` r
 #tumor_size vs t_stage = 0.801
@@ -253,7 +220,7 @@ corplot=cor(selected_data)
 corrplot(corplot)
 ```
 
-<img src="final_project_files/figure-gfm/unnamed-chunk-7-2.png" width="90%" />
+<img src="final_project_files/figure-gfm/unnamed-chunk-5-2.png" width="90%" />
 
 \#Separate training and testing set (80% training 20% testing )
 
@@ -299,57 +266,7 @@ predictors.
 
 \##HENRY - MAY BE NOT NECESSARY
 
-``` r
-# Check linearity assumption using conditional residual plots
-crPlots(full_model)
-```
-
-<img src="final_project_files/figure-gfm/unnamed-chunk-10-1.png" width="90%" />
-
-## Checking for Influential Observations:
-
-Cook’s Distance:
-
-``` r
-# Calculate Cook's distance for the full model
-cooksd <- influence.measures(full_model)$cooks
-
-# Identify influential observations
-influential_points <- which(cooksd > 4 / length(cooksd))
-
-# Display influential points
-print(influential_points)
-```
-
-    ## integer(0)
-
-## Checking for Multicollinearity:
-
-``` r
-# Check for multicollinearity using VIF
-vif_values <- car::vif(full_model)
-
-# Display VIF values
-print(vif_values)
-```
-
-    ##                    age                   race         marital_status 
-    ##               1.072175               1.012773               1.028972 
-    ##                t_stage          differentiate                a_stage 
-    ##               1.106026               1.089339               1.088040 
-    ##        estrogen_status    progesterone_status regional_node_examined 
-    ##               1.499753               1.445285               1.025804
-
-As a rule of thumb, a VIF value that exceeds 5 or 10 indicates a
-problematic amount of collinearity. In our example, there is no
-collinearity: all variables have a value of VIF well below 5.
-
 # Using Forward, BackWard
-
-``` r
-step_modelF = step(null_model, scope = list(lower = null_model, upper = full_model), 
-                   direction = "forward")
-```
 
     ## Start:  AIC=2782.19
     ## status ~ 1
@@ -446,10 +363,6 @@ step_modelF = step(null_model, scope = list(lower = null_model, upper = full_mod
     ## + race                    1   2522.9 2540.9
     ## + regional_node_examined  1   2522.9 2540.9
 
-``` r
-step_model = step(full_model, direction = "backward")
-```
-
     ## Start:  AIC=2542.89
     ## status ~ age + race + marital_status + t_stage + differentiate + 
     ##     a_stage + estrogen_status + progesterone_status + regional_node_examined
@@ -495,10 +408,6 @@ step_model = step(full_model, direction = "backward")
     ## - differentiate        1   2559.8 2573.8
     ## - t_stage              1   2567.8 2581.8
 
-``` r
-summary(step_model)
-```
-
     ## 
     ## Call:
     ## glm(formula = status ~ age + marital_status + t_stage + differentiate + 
@@ -529,10 +438,6 @@ summary(step_model)
     ## AIC: 2538.9
     ## 
     ## Number of Fisher Scoring iterations: 5
-
-``` r
-summary(step_modelF)
-```
 
     ## 
     ## Call:
@@ -565,10 +470,6 @@ summary(step_modelF)
     ## 
     ## Number of Fisher Scoring iterations: 5
 
-``` r
-anova(step_model,step_modelF,test="Chisq")
-```
-
     ## Analysis of Deviance Table
     ## 
     ## Model 1: status ~ age + marital_status + t_stage + differentiate + a_stage + 
@@ -579,45 +480,11 @@ anova(step_model,step_modelF,test="Chisq")
     ## 1      3211     2522.9                     
     ## 2      3211     2522.9  0        0
 
-``` r
-test_predictions_log_oddsStep <- predict(step_model, newdata  = (test_set),type='response')
-test_predictions_probStep <- plogis(test_predictions_log_oddsStep)
-roc_curveStep <- roc(response = (test_set$status), predictor = as.numeric(test_predictions_probStep))
-```
-
     ## Setting levels: control = 0, case = 1
 
     ## Setting direction: controls < cases
 
-``` r
-auc(roc_curveStep)
-```
-
     ## Area under the curve: 0.7
-
-``` r
-#if (!dir.exists("plots")) {
-#    dir.create("plots")
-#}
-#
-#png("plots/pairs_plot.png", 
-#    width = 12 * 600, 
-#    height = 12 * 600, 
-#    res = 600)
-
-#pairs(clean_data)
-```
-
-# Corr plot
-
-``` r
-#png("plots/corr_plot.png", 
-#    width = 12 * 600, 
-#    height = 12 * 600, 
-#    res = 600)
-
-#corrplot(cor(clean_data), type = "upper", diag = FALSE)
-```
 
 \#Elastic Net
 
@@ -626,7 +493,7 @@ auc(roc_curveStep)
 X <- as.matrix(train_set[, setdiff(names(train_set), "status")])  # Predictor variables
 y <- train_set$status  # Response variable
 
-lambda_seq <- 10^seq(-3, 0, by = .001)
+lambda_seq <- 10^seq(-2, 0, by = .001)
 
 # Use cross-validation to find the optimal lambda
 cv_object <- cv.glmnet(X, y, family = "binomial", alpha = 0.5, type.measure = "class",nfolds=5, lambda = lambda_seq)
@@ -637,7 +504,7 @@ ggplot(aes(x = lambda, y = mean_cv_error)) +
 geom_point()
 ```
 
-<img src="final_project_files/figure-gfm/unnamed-chunk-16-1.png" width="90%" />
+<img src="final_project_files/figure-gfm/unnamed-chunk-9-1.png" width="90%" />
 
 ``` r
 # Best lambda value
@@ -677,7 +544,7 @@ ggplot(aes(x = lambda, y = mean_cv_error)) +
 geom_point()
 ```
 
-<img src="final_project_files/figure-gfm/unnamed-chunk-17-1.png" width="90%" />
+<img src="final_project_files/figure-gfm/unnamed-chunk-10-1.png" width="90%" />
 
 ``` r
 # Best lambda value
@@ -710,267 +577,52 @@ lines(roc_curveStep,col='yellow')
 lines(roc_curvenet2,col='green')
 ```
 
-<img src="final_project_files/figure-gfm/unnamed-chunk-17-2.png" width="90%" />
-
-# plotting histogram
-
-## final model diagnostics
-
-1.  Coefficient Path Plot:
+<img src="final_project_files/figure-gfm/unnamed-chunk-10-2.png" width="90%" />
+Based on the ROC and AUC, final_model2 is the best prediction.
+finalModel has more variables than final_model2 but perform the same as
+finalModel2 Logistics regression without Elastic net has less AUC than
+final_Model2 \#final Model Diagonstics :
 
 ``` r
-plot(final_model, xvar = "lambda")
+predicted_classes <- as.numeric(test_predictions_probElastic2 >sum(clean_data$status)/nrow(clean_data))
+
+predicted_classes <- as.numeric(test_predictions_probElastic2 >0.5)
+predicted.classes = as.factor(test_set$status)
+
+outcome <- as.factor(test_set$status)
+predicted_classes <- factor(predicted_classes, levels = c("0", "1"))
+outcome <- factor(outcome, levels = c("0", "1"))
+
+
+
+conf_matrix <- confusionMatrix(predicted_classes, outcome)
+conf_matrix
 ```
 
-<img src="final_project_files/figure-gfm/unnamed-chunk-18-1.png" width="90%" />
-2.Cross-Validation Plot:
-
-``` r
-plot(cv_object)
-```
-
-<img src="final_project_files/figure-gfm/unnamed-chunk-19-1.png" width="90%" />
-3.Deviance Plot:
-
-``` r
-plot(final_model, xvar = "lambda", label = TRUE)
-```
-
-<img src="final_project_files/figure-gfm/unnamed-chunk-20-1.png" width="90%" />
-4.Predicted vs. Observed Plot:
-
-``` r
-par(mfrow = c(1, 2))
-plot(predict(final_model, s = best_lambda, newx = as.matrix(test_set2)), as.numeric(test_set$status), main = "Predicted vs. Observed")
-abline(a = 0, b = 1, col = "red")
-```
-
-<img src="final_project_files/figure-gfm/unnamed-chunk-21-1.png" width="90%" />
-5.Residual Analysis:
-
-``` r
-residuals <- as.vector(predict(final_model, newx = as.matrix(test_set2), s = best_lambda, type = "response") - as.numeric(test_set$status))
-plot(residuals, main = "Residuals vs. Fitted Values", xlab = "Fitted Values", ylab = "Residuals")
-```
-
-<img src="final_project_files/figure-gfm/unnamed-chunk-22-1.png" width="90%" />
-
-# Assess final model assumptions
-
-Checking for violations of regression model assumptions, influential
-observations, and multicollinearity is an essential part of ensuring the
-reliability and validity of our logistic regression model.
-
-1.  Checking Linearity Assumption: While glmnet is based on
-    regularization and not least squares, the linearity assumption can
-    be assessed by examining the relationship between predicted and
-    observed values.
-
-``` r
-# Assuming 'final_model' is your glmnet logistic regression model
-# Plot predicted vs. observed values
-plot(predict(final_model, newx = as.matrix(test_set2), s = best_lambda, type = "response"), as.numeric(test_set$status), main = "Predicted vs. Observed")
-abline(a = 0, b = 1, col = "red")
-```
-
-<img src="final_project_files/figure-gfm/unnamed-chunk-23-1.png" width="90%" />
-
-2.  Checking Residuals: \#NOT NEEDED, LOGISTICS regression does not need
-    this plot, becasue it’s logistics is none-linear Although there are
-    no standard residuals, we can examine the differences between
-    predicted and observed values.
-
-``` r
-# Assuming 'final_model' is your glmnet logistic regression model
-residuals <- as.vector(predict(final_model2, newx = as.matrix(selectedData_test_set), s = best_lambda, type = "response") - as.numeric(test_set$status))
-plot(residuals, main = "Residuals vs. Fitted Values",  xlab = "Fitted Values", ylab = "Residuals")
-```
-
-<img src="final_project_files/figure-gfm/unnamed-chunk-24-1.png" width="90%" />
-
-3.  Checking for Multicollinearity: Evaluate multicollinearity using VIF
-    (Variance Inflation Factor) to assess the relationships between
-    predictors.
-
-``` r
-# Extract coefficients from the final_model
-coefficients <- as.matrix(coef(final_model2))
-
-# Extract predictors and response
-predictors <- coefficients[-1, ]
-response <- coefficients[1, ]
-
-# Combine predictors and response into a data frame
-model_data <- data.frame(response = response, predictors)
-
-# Calculate correlation matrix
-cor_matrix <- cor(predictors, predictors)
-```
-
-# !! (Below part is the old version part, I’m not sure if this part should be removed. But you can refence this part!)
-
-### Building a logistic regression model
-
-We start by computing an example of logistic regression model using the
-selected_data, for predicting the probability of status test positivity
-based on clinical variables.
-
-``` r
-# Fit the logistic regression model
-model2 <-  glm(status ~., data = selected_data, 
-               family = binomial)
-# Predict the probability (p) of diabete positivity
-probabilities <- predict(model2, type = "response")
-predicted.classes <- ifelse(probabilities > 0.5, "Alive", "Dead")
-head(predicted.classes)
-```
-
-    ##       1       2       3       4       5       6 
-    ## "Alive" "Alive" "Alive" "Alive" "Alive" "Alive"
-
-# Check logistic regression assumptions
-
-Binary logistic regression relies on underlying assumptions to be true:
-
-1.The outcome is a binary or dichotomous variable like yes vs no,
-positive vs negative, 1 vs 0. \#HENRY, ALREADY MET 2.There is a linear
-relationship between the logit of the outcome and each predictor
-variables. Recall that the logit function is logit(p) = log(p/(1-p)),
-where p is the probabilities of the outcome. \#HENRY- ALREADY MET BUY
-FITTING DATA 3.There is no influential values (extreme values or
-outliers) in the continuous predictors \# COOKS distant, however, you
-did , this is useful 4.There is no high intercorrelations
-(i.e. multicollinearity) among the predictors. \#HENRY- ALDAY DID FOR
-Selected_data, fitted 3 model. \### Linearity assumption (Not sure with
-this part) Here, we’ll check the linear relationship between continuous
-predictor variables and the logit of the outcome. This can be done by
-visually inspecting the scatter plot between each predictor and the
-logit values.
-
-``` r
-# Refit the model using the best lambda
-final_model <- glmnet(X, y, family = "binomial", alpha = 0.5, lambda = best_lambda)
-
-test_set2 <- test_set|> select(-status)
-test_predictions_log_odds <- predict(final_model, newx = as.matrix(test_set2))
-# Convert log-odds to probabilities
-test_predictions_probElastic <- plogis(test_predictions_log_odds)
-```
-
-1.  Remove qualitative variables from the original data frame and bind
-    the logit values to the data: \#HENRY - NOT SURE what is this for
-
-``` r
-# Select only numeric predictors
-mydata <- selected_data %>%
-  dplyr::select_if(is.numeric) 
-predictors <- colnames(mydata)
-# Bind the logit and tidying the data for plot
-mydata <- mydata %>%
-  mutate(logit = log(probabilities/(1-probabilities))) %>%
-  gather(key = "predictors", value = "predictor.value", -logit)
-```
-
-2.  Create the scatter plots: \#HENRY - not helpful, this does not
-    telling anything
-
-``` r
-ggplot(mydata, aes(logit, predictor.value))+
-  geom_point(size = 0.5, alpha = 0.5) +
-  geom_smooth(method = "loess") + 
-  theme_bw() + 
-  facet_wrap(~predictors, scales = "free_y")
-```
-
-    ## `geom_smooth()` using formula 'y ~ x'
-
-<img src="final_project_files/figure-gfm/unnamed-chunk-29-1.png" width="90%" />
-A graphical check of linearity can be performed using a best fit “loess”
-line. This is on the probability scale, so it is not going to be
-straight. But it should be monotonic - it should only ever go up or
-down.
-
-### Influential values
-
-Influential values are extreme individual data points that can alter the
-quality of the logistic regression model. \##HENRY - THIS IS GOOD The
-most extreme values in the data can be examined by visualizing the
-Cook’s distance values. Here we label the top 3 largest values:
-
-``` r
-plot(model2, which = 4, id.n = 3)
-```
-
-<img src="final_project_files/figure-gfm/unnamed-chunk-30-1.png" width="90%" />
-Note that, not all outliers are influential observations. To check
-whether the data contains potential influential observations, the
-standardized residual error can be inspected. Data points with an
-absolute standardized residuals above 3 represent possible outliers and
-may deserve closer attention. \#GOOD
-
-``` r
-# Extract model results
-model.data <- augment(model2) %>% 
-  mutate(index = 1:n()) 
-
-# The data for the top 3 largest values, according to the Cook’s distance, can be displayed as follow:
-model.data %>% top_n(3, .cooksd)
-```
-
-    ## # A tibble: 3 x 17
-    ##   status   age  race marital_status t_stage differentiate a_stage
-    ##    <dbl> <dbl> <dbl>          <dbl>   <dbl>         <dbl>   <dbl>
-    ## 1      0    46     0              0       1             1       1
-    ## 2      0    49     1              4       0             3       1
-    ## 3      0    49     1              4       1             3       1
-    ## # i 10 more variables: estrogen_status <dbl>, progesterone_status <dbl>,
-    ## #   regional_node_examined <dbl>, .fitted <dbl>, .resid <dbl>, .hat <dbl>,
-    ## #   .sigma <dbl>, .cooksd <dbl>, .std.resid <dbl>, index <int>
-
-``` r
-# Plot the standardized residuals:
-ggplot(model.data, aes(index, .std.resid)) + 
-  geom_point(aes(color = status), alpha = .5) +
-  theme_bw()
-```
-
-<img src="final_project_files/figure-gfm/unnamed-chunk-31-1.png" width="90%" />
-
-``` r
-# Filter potential influential data points with abs(.std.res) > 3:
-model.data %>% 
-  filter(abs(.std.resid) > 3)
-```
-
-    ## # A tibble: 0 x 17
-    ## # i 17 variables: status <dbl>, age <dbl>, race <dbl>, marital_status <dbl>,
-    ## #   t_stage <dbl>, differentiate <dbl>, a_stage <dbl>, estrogen_status <dbl>,
-    ## #   progesterone_status <dbl>, regional_node_examined <dbl>, .fitted <dbl>,
-    ## #   .resid <dbl>, .hat <dbl>, .sigma <dbl>, .cooksd <dbl>, .std.resid <dbl>,
-    ## #   index <int>
-
-### Multicollinearity
-
-\#NOT NEED, Aldary did that, but ZHANGXUE might need this
-Multicollinearity corresponds to a situation where the data contain
-highly correlated predictor variables.
-
-Multicollinearity is an important issue in regression analysis and
-should be fixed by removing the concerned variables. It can be assessed
-using the R function vif(), which computes the variance inflation
-factors:
-
-``` r
-car::vif(model2)
-```
-
-    ##                    age                   race         marital_status 
-    ##               1.060718               1.011744               1.022602 
-    ##                t_stage          differentiate                a_stage 
-    ##               1.095144               1.079869               1.075591 
-    ##        estrogen_status    progesterone_status regional_node_examined 
-    ##               1.479548               1.433359               1.023084
-
-As a rule of thumb, a VIF value that exceeds 5 or 10 indicates a
-problematic amount of collinearity. In our example, there is no
-collinearity: all variables have a value of VIF well below 5.
+    ## Confusion Matrix and Statistics
+    ## 
+    ##           Reference
+    ## Prediction   0   1
+    ##          0  11  11
+    ##          1 105 678
+    ##                                           
+    ##                Accuracy : 0.8559          
+    ##                  95% CI : (0.8297, 0.8794)
+    ##     No Information Rate : 0.8559          
+    ##     P-Value [Acc > NIR] : 0.5247          
+    ##                                           
+    ##                   Kappa : 0.1189          
+    ##                                           
+    ##  Mcnemar's Test P-Value : <2e-16          
+    ##                                           
+    ##             Sensitivity : 0.09483         
+    ##             Specificity : 0.98403         
+    ##          Pos Pred Value : 0.50000         
+    ##          Neg Pred Value : 0.86590         
+    ##              Prevalence : 0.14410         
+    ##          Detection Rate : 0.01366         
+    ##    Detection Prevalence : 0.02733         
+    ##       Balanced Accuracy : 0.53943         
+    ##                                           
+    ##        'Positive' Class : 0               
+    ## 
