@@ -3,19 +3,12 @@ Final Project
 
 ``` r
 library(gtsummary)
-```
-
-    ## #BlackLivesMatter
-
-``` r
 library(tidyverse)
 ```
 
     ## Warning: package 'tidyverse' was built under R version 4.1.3
 
-    ## -- Attaching packages --------------------------------------- tidyverse 1.3.2
-    ## --
-
+    ## -- Attaching packages --------------------------------------- tidyverse 1.3.2 --
     ## v ggplot2 3.3.6     v purrr   1.0.1
     ## v tibble  3.2.1     v dplyr   1.1.2
     ## v tidyr   1.2.1     v stringr 1.4.0
