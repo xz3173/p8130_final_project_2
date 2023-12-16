@@ -574,7 +574,9 @@ lines(roc_curvenet2,col='green')
 Based on the ROC and AUC, final_model2 is the best prediction.
 finalModel has more variables than final_model2 but perform the same as
 finalModel2 Logistics regression without Elastic net has less AUC than
-final_Model2 \#final Model Diagonstics :
+final_Model2
+
+Bases \#final Model Diagonstics :
 
 ``` r
 predicted_classes <- as.numeric(test_predictions_probElastic2 >sum(clean_data$status)/nrow(clean_data))
