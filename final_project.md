@@ -6,20 +6,37 @@ library(gtsummary)
 library(tidyverse)
 ```
 
-    ## ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
-    ## ✔ dplyr     1.1.3     ✔ readr     2.1.4
-    ## ✔ forcats   1.0.0     ✔ stringr   1.5.0
-    ## ✔ ggplot2   3.4.4     ✔ tibble    3.2.1
-    ## ✔ lubridate 1.9.2     ✔ tidyr     1.3.0
-    ## ✔ purrr     1.0.2     
-    ## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
-    ## ✖ dplyr::filter() masks stats::filter()
-    ## ✖ dplyr::lag()    masks stats::lag()
-    ## ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
+    ## Warning: package 'tidyverse' was built under R version 4.1.3
+
+    ## -- Attaching packages --------------------------------------- tidyverse 1.3.2 --
+    ## v ggplot2 3.3.6     v purrr   1.0.1
+    ## v tibble  3.2.1     v dplyr   1.1.2
+    ## v tidyr   1.2.1     v stringr 1.4.0
+    ## v readr   2.1.2     v forcats 1.0.0
+
+    ## Warning: package 'ggplot2' was built under R version 4.1.3
+
+    ## Warning: package 'tibble' was built under R version 4.1.3
+
+    ## Warning: package 'tidyr' was built under R version 4.1.3
+
+    ## Warning: package 'readr' was built under R version 4.1.3
+
+    ## Warning: package 'purrr' was built under R version 4.1.3
+
+    ## Warning: package 'dplyr' was built under R version 4.1.3
+
+    ## Warning: package 'forcats' was built under R version 4.1.3
+
+    ## -- Conflicts ------------------------------------------ tidyverse_conflicts() --
+    ## x dplyr::filter() masks stats::filter()
+    ## x dplyr::lag()    masks stats::lag()
 
 ``` r
 library(car)
 ```
+
+    ## Warning: package 'car' was built under R version 4.1.2
 
     ## Loading required package: carData
     ## 
@@ -37,6 +54,8 @@ library(car)
 library(caret)
 ```
 
+    ## Warning: package 'caret' was built under R version 4.1.3
+
     ## Loading required package: lattice
     ## 
     ## Attaching package: 'caret'
@@ -49,13 +68,20 @@ library(caret)
 library(corrplot)
 ```
 
+    ## Warning: package 'corrplot' was built under R version 4.1.3
+
     ## corrplot 0.92 loaded
 
 ``` r
 library(glmnet)
 ```
 
+    ## Warning: package 'glmnet' was built under R version 4.1.3
+
     ## Loading required package: Matrix
+
+    ## Warning: package 'Matrix' was built under R version 4.1.3
+
     ## 
     ## Attaching package: 'Matrix'
     ## 
@@ -63,12 +89,19 @@ library(glmnet)
     ## 
     ##     expand, pack, unpack
     ## 
-    ## Loaded glmnet 4.1-8
+    ## Loaded glmnet 4.1-7
 
 ``` r
 library(leaps)
+```
+
+    ## Warning: package 'leaps' was built under R version 4.1.3
+
+``` r
 library(pROC)
 ```
+
+    ## Warning: package 'pROC' was built under R version 4.1.2
 
     ## Type 'citation("pROC")' for a citation.
     ## 
@@ -108,13 +141,13 @@ data = read_csv("./data/data.csv") |>
 ```
 
     ## Rows: 4024 Columns: 16
-    ## ── Column specification ────────────────────────────────────────────────────────
+    ## -- Column specification --------------------------------------------------------
     ## Delimiter: ","
     ## chr (11): Race, Marital Status, T Stage, N Stage, 6th Stage, differentiate, ...
     ## dbl  (5): Age, Tumor Size, Regional Node Examined, Reginol Node Positive, Su...
     ## 
-    ## ℹ Use `spec()` to retrieve the full column specification for this data.
-    ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+    ## i Use `spec()` to retrieve the full column specification for this data.
+    ## i Specify the column types or set `show_col_types = FALSE` to quiet this message.
 
 ``` r
 data = data |>
@@ -379,6 +412,10 @@ predictors.
     ##     a_stage + estrogen_status + progesterone_status, family = binomial(link = "logit"), 
     ##     data = selected_train)
     ## 
+    ## Deviance Residuals: 
+    ##     Min       1Q   Median       3Q      Max  
+    ## -2.5313   0.3530   0.4539   0.5824   1.7480  
+    ## 
     ## Coefficients:
     ##                      Estimate Std. Error z value Pr(>|z|)    
     ## (Intercept)          1.570637   0.359045   4.374 1.22e-05 ***
@@ -405,6 +442,10 @@ predictors.
     ## glm(formula = status ~ progesterone_status + t_stage + differentiate + 
     ##     age + estrogen_status + marital_status + a_stage, family = binomial(link = "logit"), 
     ##     data = selected_train)
+    ## 
+    ## Deviance Residuals: 
+    ##     Min       1Q   Median       3Q      Max  
+    ## -2.5313   0.3530   0.4539   0.5824   1.7480  
     ## 
     ## Coefficients:
     ##                      Estimate Std. Error z value Pr(>|z|)    
@@ -618,6 +659,10 @@ summary(step_model_1)
     ##     a_stage + estrogen_status + progesterone_status, family = binomial(link = "logit"), 
     ##     data = selected_train)
     ## 
+    ## Deviance Residuals: 
+    ##     Min       1Q   Median       3Q      Max  
+    ## -2.5313   0.3530   0.4539   0.5824   1.7480  
+    ## 
     ## Coefficients:
     ##                      Estimate Std. Error z value Pr(>|z|)    
     ## (Intercept)          1.570637   0.359045   4.374 1.22e-05 ***
@@ -648,6 +693,10 @@ summary(step_modelF_1)
     ## glm(formula = status ~ progesterone_status + t_stage + differentiate + 
     ##     age + estrogen_status + marital_status + a_stage, family = binomial(link = "logit"), 
     ##     data = selected_train)
+    ## 
+    ## Deviance Residuals: 
+    ##     Min       1Q   Median       3Q      Max  
+    ## -2.5313   0.3530   0.4539   0.5824   1.7480  
     ## 
     ## Coefficients:
     ##                      Estimate Std. Error z value Pr(>|z|)    
@@ -848,6 +897,10 @@ summary(step_model_2)
     ##     differentiate + a_stage + estrogen_status + progesterone_status + 
     ##     race:marital_status, family = binomial(link = "logit"), data = selected_train)
     ## 
+    ## Deviance Residuals: 
+    ##     Min       1Q   Median       3Q      Max  
+    ## -2.6231   0.3528   0.4552   0.5791   1.9452  
+    ## 
     ## Coefficients:
     ##                      Estimate Std. Error z value Pr(>|z|)    
     ## (Intercept)          1.504256   0.364651   4.125 3.70e-05 ***
@@ -880,6 +933,10 @@ summary(step_modelF_2)
     ## glm(formula = status ~ progesterone_status + t_stage + differentiate + 
     ##     age + estrogen_status + marital_status + a_stage, family = binomial(link = "logit"), 
     ##     data = selected_train)
+    ## 
+    ## Deviance Residuals: 
+    ##     Min       1Q   Median       3Q      Max  
+    ## -2.5313   0.3530   0.4539   0.5824   1.7480  
     ## 
     ## Coefficients:
     ##                      Estimate Std. Error z value Pr(>|z|)    
@@ -1025,6 +1082,7 @@ auc(roc_curvenet2)
 plot(roc_curve, main = "ROC Curve", col = "#1c61b6", lwd = 2)
 lines(roc_curveStep,col='yellow')
 lines(roc_curvenet2,col='green')
+lines(roc_curveStep_2,col='purple')
 ```
 
 <img src="final_project_files/figure-gfm/unnamed-chunk-12-2.png" width="90%" />

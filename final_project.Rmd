@@ -162,52 +162,19 @@ auc(roc_curveStep)
 
 ```
 
-# Interaction: race + age
-```{r}
-step_modelF_1 = step(null_model, scope = list(lower = null_model, upper = interaction_race_age), 
-                   direction = "forward")
 
-step_model_1 = step(interaction_race_age, direction = "backward")
-
-summary(step_model_1)
-
-summary(step_modelF_1)
-
-anova(step_model_1,step_modelF_1,test="Chisq")
-
-test_predictions_log_oddsStep_1 = predict(step_model_1, newdata  = (test_set),type='response')
-
-test_predictions_probStep_1 = plogis(test_predictions_log_oddsStep_1)
-
-roc_curveStep_1 = roc(response = (test_set$status), predictor = as.numeric(test_predictions_probStep_1))
-
-auc(roc_curveStep_1)
-```
-
-# Interaction: race + marital_status
+# Interaction: race *marital_status
 ```{r}
 step_modelF_2 = step(null_model, scope = list(lower = null_model, upper = interaction_race_marital_status), 
                    direction = "forward")
-
 step_model_2 = step(interaction_race_marital_status, direction = "backward")
-
 summary(step_model_2)
-
 summary(step_modelF_2)
-
-anova(step_model_2,step_modelF_2,test="Chisq")
-
-test_predictions_log_oddsStep_2 = predict(step_model_2, newdata  = (test_set),type='response')
-
+test_predictions_log_oddsStep_2 = predict(step_modelF_2, newdata  = (test_set),type='response')
 test_predictions_probStep_2 = plogis(test_predictions_log_oddsStep_2)
-
 roc_curveStep_2 = roc(response = (test_set$status), predictor = as.numeric(test_predictions_probStep_2))
-
 auc(roc_curveStep_2)
 ```
-
-
-
 #Elastic Net
 ```{R}
 
@@ -272,6 +239,9 @@ auc(roc_curvenet2)
 plot(roc_curve, main = "ROC Curve", col = "#1c61b6", lwd = 2)
 lines(roc_curveStep,col='yellow')
 lines(roc_curvenet2,col='green')
+lines(roc_curveStep_2,col='purple')
+
+
 ```
 Based on the ROC and AUC, final_model2 is the best prediction. 
 finalModel has more variables than final_model2 but perform the same as finalModel2
@@ -288,8 +258,6 @@ predicted.classes = as.factor(test_set$status)
 outcome <- as.factor(test_set$status)
 predicted_classes <- factor(predicted_classes, levels = c("0", "1"))
 outcome <- factor(outcome, levels = c("0", "1"))
-
-
 
 conf_matrix <- confusionMatrix(predicted_classes, outcome)
 conf_matrix
