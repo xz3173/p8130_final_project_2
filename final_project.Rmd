@@ -13,6 +13,7 @@ library(glmnet)
 library(leaps)
 library(pROC)
 library(broom)
+library(patchwork)
 
 set.seed(123)
 
@@ -39,9 +40,9 @@ theme_set(theme_minimal() + theme(legend.position = "bottom"))
 ```{r}
 data = read_csv("./data/data.csv") |>
   janitor::clean_names()
-data = data |>
-  select(-survival_months)
 ```
+
+
 
 ```{r}
 # Convert character to factor for regression analysis
@@ -62,6 +63,515 @@ clean_data = data |>
 ```
 
 
+```{r}
+clean_data2=clean_data
+```
+
+# Pairs plot
+# Use `windows` for windows system / `quartz` for macos system
+# Use `quartz(width = 12, height = 12)` to open the window
+# Use `dev.off()` to close the window
+```{r}
+if (!dir.exists("plots")) {
+    dir.create("plots")
+}
+
+png("plots/pairs_plot.png", 
+    width = 12 * 600, 
+    height = 12 * 600, 
+    res = 600)
+
+pairs(clean_data)
+```
+
+# Corr plot
+```{r}
+png("plots/corr_plot.png", 
+    width = 12 * 600, 
+    height = 12 * 600, 
+    res = 600)
+
+corrplot(cor(clean_data), type = "upper", diag = FALSE)
+
+```
+
+# Plotting boxplot
+```{r}
+plot_boxplot = function(data_vector, main_title, x_label = "") {
+  boxplot(data_vector, 
+          main = main_title, 
+          xlab = x_label, 
+          col = "lightblue")
+}
+
+png("plots/box_plot.png", 
+    width = 12 * 600, 
+    height = 12 * 600, 
+    res = 600)
+
+par(mar = c(2, 2, 2, 2))
+par(mfrow = c(4, 4))
+
+
+column_names = names(clean_data)
+for (col_name in column_names) {
+  plot_boxplot(clean_data[[col_name]], 
+               main_title = col_name, 
+               x_label = col_name)
+}
+
+
+dev.off()
+```
+
+# plotting histogram
+```{r}
+plot_histogram = 
+  function(data_vector, main_title, x_label = "") {
+  hist(data_vector, 
+       main = main_title, 
+       xlab = x_label, 
+       col = "blue")
+}
+
+
+png("plots/histogram_plot.png", 
+    width = 12 * 600, 
+    height = 12 * 600, res = 600)
+
+par(mar = c(2, 2, 2, 2))
+par(mfrow = c(4, 4))
+
+
+column_names = names(clean_data)
+for (col_name in column_names) {
+  plot_histogram(clean_data[[col_name]], 
+                 main_title = col_name, 
+                 x_label = col_name)
+}
+
+dev.off()
+```
+
+
+```{r}
+boxplot(clean_data$age, main = "age")
+```
+
+1. Age: The age box plot shows a fairly symmetrical distribution with a median around 50 years old, and the interquartile range (IQR) appears tight, suggesting that half of the values fall within a relatively small range. There are no visible outliers, and the distribution does not appear to be skewed, which indicates that a transformation may not be necessary for age in this dataset. 
+
+```{r}
+boxplot(clean_data$race, main = "race")
+```
+
+2. Race: The race box plot indicates that the majority of the dataset's observations fall into one category, with a few outliers in the higher categories. Given that race is a categorical variable, it does not require a numerical transformation.
+
+```{r}
+boxplot(clean_data$marital_status, main = "marital status")
+```
+
+3. Marital Status: The box plot for marital status shows a concentration of data in the lower categories with some outliers present in the higher categories, it does not require a numerical transformation.
+
+```{r}
+boxplot(clean_data$t_stage, main = "T Stage")
+```
+
+
+4. T Stage: The boxplot for T Stage suggests that most patients are in the early stages (0 and 1), with fewer patients in more advanced stages (2 and 3),
+as indicated by the median and interquartile range. There are outliers in stage 3, which might represent more severe cases. T Stage is an ordinal variable, representing the size and extent of the main tumor, and does not typically require numerical transformation. 
+
+
+```{r}
+boxplot(clean_data$n_stage, main = "N Stage")
+```
+
+5. N Stage: The boxplot for N Stage indicates a distribution that is skewed towards the lower stages, with most data points falling in stage 0 or 1, and fewer in stage 2. There are no outliers, and the spread of the data suggests that most patients have no or minimal regional lymph node involvement. 
+
+
+```{r}
+boxplot(clean_data$x6th_stage, main = "X6th Stage")
+```
+
+6. X6th Stage: The box plot for the x6th stage shows a relatively even distribution across the stags with the median at stage 1, indicating a moderate level of spread to distant parts of the body. The data points are well-contained within the whiskers, suggesting there are no outliers and no extreme values that would require transformation.
+
+```{r}
+boxplot(clean_data$differentiate, main = "differentiate")
+```
+
+7. Differentiate: The box plot for the 'differentiate' variable shows that the median level of tumor differentiation is around the lower middle range, with a fairly symmetrical distribution around this median. There are no visible outliers, indicating that there are no extreme cases in terms of tumor differentiation. Since 'differentiate' is likely an ordinal variable representing ordered categories of tumor differentiation, it does not require a numerical transformation
+
+```{r}
+boxplot(clean_data$grade, main = "grade")
+```
+
+8. Grade: The box plot for 'grade' shows a distribution that is fairly centered, with the median around the midpoint of the scale, which suggests an even spread of tumor grades in the dataset. The data is contained within the whiskers, indicating no outliers, and the grades are likely to be an ordinal variable where the numerical value indicates a ranking or level of severity. Therefore, no transformation is needed.
+
+```{r}
+boxplot(clean_data$a_stage, main = "A Stage")
+```
+
+9. A Stage: The box plot for 'A Stage' suggests that the majority of observations are concentrated at the lower end of the scale, with a single outlier indicating a case with a higher stage. This variable is also likely categorical or ordinal, reflecting stages of cancer, and as such, numerical transformation is not appropriate. 
+
+```{r}
+boxplot(clean_data$tumor_size, main = "Tumor Size")
+```
+
+10. Tumor Size: The box plot for 'Tumor Size' shows a wide range of sizes, with a concentration of smaller tumors and several outliers indicating much larger tumors. The distribution appears right-skewed due to these outliers. Given the skewness and presence of outliers, a transformation such as a logarithmic scale could be beneficial to normalize the data, which may be especially useful if 'Tumor Size' is used as a predictor in regression analysis.
+
+
+```{r}
+boxplot(clean_data$estrogen_status, main = "Estrogen Status")
+```
+
+11. Estrogen Status: The box plot for Estrogen Status suggests that it is a binary categorical variable, likely indicating the presence (1) or absence (0) of estrogen receptors in tumor samples. The plot shows that a large majority of the tumors are positive for estrogen receptors, with very few negative cases, as indicated by the outlier point at zero. As a binary variable, Estrogen Status does not require a numerical transformation for analysis.
+
+
+```{r}
+boxplot(clean_data$progesterone_status, main = "Progesterone Status")
+```
+
+12. Progesterone Status: The box plot for Progesterone Status indicates that it is also a binary categorical variable, representing the presence (1) or absence (0) of progesterone receptors. Similar to the Estrogen Status, the vast majority of the data points indicate a positive status for progesterone receptors, with the outlier at zero representing the few negative cases. No transformation is needed for this type of categorical data.
+
+
+```{r}
+boxplot(clean_data$regional_node_examined, main = "Regional Node Examined")
+```
+
+13. Regional Node Examined: The box plot for 'Regional Node Examined' displays a right-skewed distribution with a significant number of outliers on the higher end, indicating that while most patients had a smaller number of nodes examined, there are some patients with a much larger number. Given the skewness and presence of outliers, a log transformation might be appropriate to normalize the distribution, especially if this variable is to be used in parametric statistical analyses that assume normality.
+
+
+
+```{r}
+boxplot(clean_data$regional_node_positive, main = "Regional Node Positive")
+```
+
+14. Regional Node Positive: The box plot for 'Regional Node Positive' indicates a distribution with a large number of outliers on the upper end, reflecting that while most patients have a relatively low number of positive regional nodes, there are several patients with a significantly higher count. Given the right skewness and the presence of many outliers, a log transformation could be appropriate to reduce the skewness and diminish the influence of outliers.
+
+
+
+
+```{r}
+boxplot(clean_data$survival_months, main = "Survival Months")
+```
+
+15. Survival Months: The box plot for 'Survival Months' shows a distribution with a median below the halfway point of the box, suggesting a slight skew towards shorter survival times. There are outliers on the lower end, representing patients with very short survival times. Given the distribution's skewness and presence of outliers, a transformation such as logarithmic or square root might help to normalize the data, particularly if 'Survival Months' is used as a continuous predictor in regression models requiring normally distributed residuals.
+
+
+
+## Race
+```{r}
+# Bar Plot for Race
+p1 = ggplot(clean_data, aes(x = factor(race))) +
+  geom_bar(fill = "orange") +
+  ggtitle("Race Distribution") +
+  xlab("Race") +
+  ylab("Count")
+```
+
+#### Race Distribution
+
+**The bar chart indicates a significant imbalance in the race distribution of the patient sample, with the majority of patients being of the race categorized as 'o' (White). Races '1' (Black) and '2' (other) are much less represented, suggesting that the patient data may not be as diverse in terms of racial demographics.**
+
+## Marital Status
+```{r}
+# Bar Plot for Marital Status
+p2 = ggplot(clean_data, aes(x = factor(marital_status))) +
+  geom_bar(fill = "orange") +
+  ggtitle("Marital Status Distribution") +
+  xlab("Marital Status") +
+  ylab("Count")
+```
+
+
+### Marital Status
+
+**The bar chart shows that the largest group of patients falls under the marital status category '0', which is represent married, while the other categories, which represent single, divorced, widowed, separated, are less frequent. This suggests that the married patients are more prevalent in this particular dataset.**
+
+## t_stage
+```{r}
+# Bar Plot for t_stage
+p3 = ggplot(clean_data, aes(x = factor(t_stage))) +
+  geom_bar(fill = "orange") +
+  ggtitle("T Stage Distribution") +
+  xlab("T Stage") +
+  ylab("Count")
+```
+
+## n_stage
+```{r}
+# Bar Plot for n_stage
+p4 = ggplot(clean_data, aes(x = factor(n_stage))) +
+  geom_bar(fill = "orange") +
+  ggtitle("N Stage Distribution") +
+  xlab("N Stage") +
+  ylab("Count")
+```
+
+## x6th_stage
+```{r}
+# Bar Plot for x6th_stage
+p5 = ggplot(clean_data, aes(x = factor(x6th_stage))) +
+  geom_bar(fill = "orange") +
+  ggtitle("x6th Stage Distribution") +
+  xlab("x6th Stage") +
+  ylab("Count")
+```
+
+## Tumor Size and Stage
+```{r}
+# Scatter Plot for Tumor Size and T stage
+ggplot(clean_data, aes(x = t_stage, y = tumor_size)) +
+  geom_point(alpha = 0.6) +
+  ggtitle("Tumor Size vs T Stage") +
+  xlab("T Stage") +
+  ylab("Tumor Size")
+```
+
+**The scatter plot suggests a possible trend where higher T stage classifications; however, there is considerable variation within each T stage category. Notably, T stages 1(2) through 3(4) show a wide range of tumor sizes, with some larger tumors present in earlier stages and smaller tumors in later stages, indicating that tumor size alone may not be a definitive indicator of T stage.**
+
+## differentiate
+```{r}
+# Bar Plot for differentiate
+p6 = ggplot(clean_data, aes(x = factor(differentiate))) +
+  geom_bar(fill = "orange") +
+  ggtitle("Diffferentiate Distribution") +
+  xlab("Differentiate") +
+  ylab("Count")
+```
+
+## grade
+```{r}
+# Bar Plot for grade
+p7 = ggplot(clean_data, aes(x = factor(grade))) +
+  geom_bar(fill = "orange") +
+  ggtitle("Grade Distribution") +
+  xlab("Grade") +
+  ylab("Count")
+```
+
+# a_stage
+```{r}
+# Bar Plot for a_stage
+p8 = ggplot(clean_data, aes(x = factor(a_stage))) +
+  geom_bar(fill = "orange") +
+  ggtitle("A Stage Distribution") +
+  xlab("A Stage") +
+  ylab("Count")
+```
+
+
+## tumor_size
+```{r}
+# Bar Plot for tumor_size
+ggplot(clean_data, aes(x = factor(tumor_size))) +
+  geom_bar(fill = "orange") +
+  ggtitle("Tumor Size Distribution") +
+  xlab("Tumor Size") +
+  ylab("Count")
+```
+
+## Survival Months and Status
+```{r}
+# Boxplot for Survival Months by Status
+ggplot(clean_data, aes(x = factor(status), y = survival_months)) +
+  geom_boxplot(fill = "purple") +
+  ggtitle("Survival Months by Patient Status") +
+  xlab("Status (0: Dead, 1: Alive") +
+  ylab("Survival Months")
+```
+
+**The boxplot displays that patients who are alive(Status 1) have a wider range and generally higher survival months compared to those who are dead (Status 0), where the survival time is more concentrated in a lower range. This suggests a clear distinction in survival months between the two groups, with patients who are alive experiencing longer survival peridos post-diagnosis or treatment.**
+
+## estrogen_status
+```{r}
+# Bar Plot for estrogen_sstatus
+p9 = ggplot(clean_data, aes(x = factor(estrogen_status))) +
+  geom_bar(fill = "orange") +
+  ggtitle("Estrogen Status Distribution") +
+  xlab("Estrogen Status Stage") +
+  ylab("Count")
+```
+
+# Progesterone_status
+```{r}
+# Bar Plot for progesterone_status
+p10 = ggplot(clean_data, aes(x = factor(progesterone_status))) +
+  geom_bar(fill = "orange") +
+  ggtitle("Progesterone Status Distribution") +
+  xlab("Progesterone Status") +
+  ylab("Count")
+```
+
+
+## Status
+```{r}
+# Bar Plot for status
+p11 = ggplot(clean_data, aes(x = factor(status))) +
+  geom_bar(fill = "orange") +
+  ggtitle("Status Distribution") +
+  xlab("Status Stage") +
+  ylab("Count")
+```
+
+
+
+
+## Hormone Status and Stage
+```{r}
+# Bar Plot for Estrogen Status by T Stage
+ggplot(clean_data, aes(x = factor(t_stage), fill = factor(estrogen_status))) +
+  geom_bar(position = "dodge") +
+  ggtitle("Estrogen Status by T Stage") +
+  xlab("T Stage") +
+  ylab("Count")
+```
+
+**The bar chart illustrates that the majority of patients across all T stages have an estrogen status of "1" , which indicate a positive hormone receptor sstatus. The prevalence of estrogen-positive status decreases slightly in higher T stages, but it remains the dominant category, suggesting a potential correlation between estrogen receptor positivity and the presence of cancer across different T stages.**
+
+## Regional Node Analysis
+```{r}
+# Scatter Plot for Regional Nodes Examined vs Positive
+ggplot(clean_data, aes(x = regional_node_examined, y = regional_node_positive)) +
+  geom_point(color = "red", alpha = 0.5) +
+  ggtitle("Regional Nodes Examined vs Positive") +
+  xlab("Regional Nodes Examined") +
+  ylab("Regional Nodes Positive")
+```
+
+**The scatter plot reveals a trend where the number of positive regional nodes increases with the number off nodes examined, up to a point. However, there is notable variability, especially when fewer nodes are examined. Beyond a certain number of examined nodes, the count of positive nodes tot level off, suggesting that examining more nodes does not always correlate with finding a higher number of positive nodes.**
+
+
+
+
+
+
+
+```{r}
+ggplot(clean_data, aes(x = differentiate, fill = factor(status))) +
+  geom_bar(position = "fill") +
+  scale_fill_manual(values = c("0" = "red", "1" = "green"),
+                    labels = c("Dead", "Alive")) +
+  labs(x = "Differentiation Level",
+       y = "Proportion",
+       fill = "Status") +
+  ggtitle("Patient Status by Tumor Diffferentiation") +
+  theme_minimal()
+```
+
+**The bar chart indicates that the proportion of deceased patients (red) is consistent across all levles of tumor differentiation, suggesting that within this dataset, the differentiation level of the tumor may not be a strong predictor of patient survival status.**
+
+```{r}
+ggplot(clean_data, aes(x = factor(differentiate), 
+                       y = survival_months, 
+                       fill = as.factor(status))) +
+  geom_boxplot() +
+  scale_fill_manual(values = c("0" = "red", "1" = "green"),
+                    labels = c("Dead", "Alive")) +
+  labs(x = "Differentiation Level",
+       y = "Proportion",
+       fill = "Status") +
+  ggtitle("Patient Status by Tumor Diffferentiation") +
+  theme_minimal()
+```
+
+# combine barplot for charactter variables
+```{r}
+p1 + p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9 + p10 + p11
+```
+
+# Histogram for numeric variables
+```{r}
+par(mfrow = c(3,2))
+hist(data$age, main = "Age")
+hist(data$tumor_size, main = "Tumor Size")
+hist(data$regional_node_examined, main = "Regional Node Examined")
+hist(data$reginol_node_positive, main = "Regional Node Positive")
+hist(data$survival_months, main = "Survival Months")
+```
+
+# race : age
+
+```{r}
+# Convert numerical values to factors with appropriate labels
+clean_data$race = factor(clean_data$race,
+                         levels = c(0, 1, 2),
+                         labels = c("White", "Black", "Other"))
+
+clean_data$age = cut(clean_data$age, 
+                        breaks = c(-Inf, 30, 50, Inf),
+                        labels = c("Under 30", "30-50", "Over 50"),
+                        right = FALSE)
+
+clean_data$status = factor(clean_data$status, 
+                            levels = c(0, 1),
+                            labels = c("Dead", "Alive"))
+
+# Group and summarize the data
+summary_data_a = clean_data |>
+  group_by(age, race, status) |>
+  summarise(count = n(), .groups = "drop")
+
+# Create a bar plot
+ggplot(summary_data_a, aes(x = age, y = count, fill = status)) +
+  geom_bar(stat = "identity", position = position_dodge()) +
+  scale_fill_brewer(palette = "Set1") +
+  facet_wrap(~race, scales = "free_y") +
+  labs(title = "Age and Death Status by Race", 
+       x = "Age", 
+       y = "Count") +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        axis.text = element_text(angle = 45, hjust = 1),
+        plot.title = element_text(size = 14, face = "bold"),
+        strip.background = element_rect(fill = "lightblue"),
+        strip.text.x = element_text(size = 10, face = "bold"))
+
+
+```
+
+
+# race: marital status
+
+```{r}
+# Convert numerical values to factors with appropriate labels
+
+
+clean_data$marital_status = factor(clean_data$marital_status, 
+                                    levels = c(0, 1, 2, 3, 4),
+                                    labels = c("Married", "Single", "Divorced", "Widowed", "Seperated"))
+
+
+# Group and summarize the data
+summary_data_b = clean_data |>
+  group_by(marital_status, race, status) |>
+  summarise(count = n(), .groups = "drop")
+
+# Create a bar plot
+ggplot(summary_data_b, aes(x = marital_status, y = count, fill = status)) +
+  geom_bar(stat = "identity", position = position_dodge()) +
+  scale_fill_brewer(palette = "Set1") +
+  facet_wrap(~race, scales = "free_y") +
+  labs(title = "Marital Status vs Death Status by Race", 
+       x = "Marital Status", 
+       y = "Count") +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        axis.text = element_text(angle = 45, hjust = 1),
+        plot.title = element_text(size = 14, face = "bold"),
+        strip.background = element_rect(fill = "lightblue"),
+        strip.text.x = element_text(size = 10, face = "bold"))
+
+
+```
+
+The bar chart illustrates the count of individuals by marital status and their survival status, segmented by race. It's evident that for the White and Other race categories, the majority of individuals are married and alive, while the Black race category has a higher count of single individuals who are alive. Across all race categories, the number of deceased individuals is significantly lower than those alive, with the widowed status showing a higher count of deceased individuals particularly in the White race category.
+
+
+
+```{r}
+data = data |>
+  select(-survival_months)
+```
 
 #Model fitting
 #Based on boxplots, transformaiton is necesessary to reduce outliers 
@@ -80,7 +590,7 @@ bold_labels()  |>
 italicize_levels()
 
 
-clean_data2=clean_data
+
 clean_data2$tumor_size= (clean_data$tumor_size)^(1/3)
 clean_data2$regional_node_examined = log(clean_data$regional_node_examined)
 clean_data2$regional_node_positive = log(clean_data$regional_node_positive)
@@ -250,16 +760,16 @@ Logistics regression without Elastic net has less AUC than final_Model2
 Second model diagonstics
 #final Model Diagonstics :
 ```{R}
-predicted_classes <- as.numeric(test_predictions_probElastic2 >sum(clean_data$status)/nrow(clean_data))
+predicted_classes = as.numeric(test_predictions_probElastic2 >sum(clean_data2$status)/nrow(clean_data2))
 
-predicted_classes <- as.numeric(test_predictions_probElastic2 >0.5)
+predicted_classes = as.numeric(test_predictions_probElastic2 >0.5)
 predicted.classes = as.factor(test_set$status)
 
-outcome <- as.factor(test_set$status)
-predicted_classes <- factor(predicted_classes, levels = c("0", "1"))
-outcome <- factor(outcome, levels = c("0", "1"))
+outcome = as.factor(test_set$status)
+predicted_classes = factor(predicted_classes, levels = c("0", "1"))
+outcome = factor(outcome, levels = c("0", "1"))
 
-conf_matrix <- confusionMatrix(predicted_classes, outcome)
+conf_matrix = confusionMatrix(predicted_classes, outcome)
 conf_matrix
 ```
 
