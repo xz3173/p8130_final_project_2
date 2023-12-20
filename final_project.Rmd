@@ -59,7 +59,22 @@ clean_data = data |>
     progesterone_status = as.numeric(factor(progesterone_status, levels = c("Negative", "Positive"))) - 1,
     status = as.numeric(factor(status, levels = c("Dead", "Alive"))) - 1)|>
   rename(regional_node_positive = reginol_node_positive)
+
+#Table
+proj2 = clean_data |>
+tbl_summary(by="status",
+  missing_text = "(Missing)", # counts missing values
+  statistic = list(all_continuous() ~ "mean={mean} (min={min}, max={max}, sd={sd})",
+                   all_categorical() ~ "n={n} (p={p}%)") # stats for categorical
+ # specify variables to include
+  ) |>
+bold_labels()  |>
+italicize_levels()
+proj2
 ```
+
+
+
 
 
 
@@ -86,8 +101,6 @@ clean_data2$regional_node_examined = log(clean_data$regional_node_examined)
 clean_data2$regional_node_positive = log(clean_data$regional_node_positive)
 ```
 
-
-
 #Find correlation
 ```{R}
 corplot=cor(clean_data2)
@@ -108,13 +121,13 @@ corrplot(corplot)
 # Calculate the size of each of the data sets
 data_size = nrow(clean_data2)
 train_size = floor(0.8 * data_size)
-
 # Create a random sample of row indices for the training set
 train_indices = sample(sample(seq_len(data_size), size = train_size))
-
 # Subset the data into training and testing sets
+#FUll variable
 train_set = clean_data2[train_indices, ]
 selectedData_train_set = selected_data[train_indices,]
+
 test_set = clean_data2[-train_indices, ]
 selectedData_test_set = selected_data[-train_indices, ]
 ```
@@ -123,29 +136,12 @@ selectedData_test_set = selected_data[-train_indices, ]
 ```{R}
 selected_train = train_set |>
   select(-tumor_size, -grade,-n_stage,-regional_node_positive,-x6th_stage)
-
-null_model = glm(status ~ 1, family = binomial(link = "logit"), data = selected_train)
-
+null_model = glm(status ~ 1, family = binomial(link = "logit"), data = selected_train)#cleaned data
 full_model=glm(status ~ . , family = binomial(link = "logit"), data = selected_train)
-
 interaction_race_age = glm(status ~ . + race:age, family = binomial(link = "logit"), data = selected_train)
 
 interaction_race_marital_status = glm(status ~ . + race:marital_status,  family = binomial(link = "logit"), data = selected_train)
 ```
-
-# Check logistic regression assumptions
-
-Binary logistic regression relies on underlying assumptions to be true:
-
-1.The outcome is a binary or dichotomous variable like yes vs no, positive vs negative, 1 vs 0.
-2.There is a linear relationship between the logit of the outcome(status) and each predictor variables. Recall that the logit function is logit(p) = log(p/(1-p)), where p is the probabilities of the outcome.
-3.There is no influential values in the continuous predictors.
-4.There is no multicollinearity among the predictors.
-
-## Checking Linearity of continuous variables to the response
-##HENRY - MAY BE NOT NECESSARY
-
-
 
 # Using Forward, BackWard
 ```{r,echo=FALSE}
@@ -155,11 +151,13 @@ step_model = step(full_model, direction = "backward")
 summary(step_model)
 summary(step_modelF)
 anova(step_model,step_modelF,test="Chisq")
+
 test_predictions_log_oddsStep <- predict(step_model, newdata  = (test_set),type='response')
 test_predictions_probStep <- plogis(test_predictions_log_oddsStep)
 roc_curveStep <- roc(response = (test_set$status), predictor = as.numeric(test_predictions_probStep))
 auc(roc_curveStep)
 
+summary(step_modelF)
 ```
 
 
@@ -170,7 +168,8 @@ step_modelF_2 = step(null_model, scope = list(lower = null_model, upper = intera
 step_model_2 = step(interaction_race_marital_status, direction = "backward")
 summary(step_model_2)
 summary(step_modelF_2)
-test_predictions_log_oddsStep_2 = predict(step_modelF_2, newdata  = (test_set),type='response')
+
+test_predictions_log_oddsStep_2 = predict(step_model_2, newdata  = (test_set),type='response')
 test_predictions_probStep_2 = plogis(test_predictions_log_oddsStep_2)
 roc_curveStep_2 = roc(response = (test_set$status), predictor = as.numeric(test_predictions_probStep_2))
 auc(roc_curveStep_2)
@@ -216,7 +215,6 @@ auc(roc_curve)
 X2 <- as.matrix(selectedData_train_set[, setdiff(names(selectedData_train_set), "status")])  # Predictor variables
 # Use cross-validation to find the optimal lambda
 cv_object <- cv.glmnet(X2, y, family = "binomial", alpha = 0.5, type.measure = "class",nfolds=5, lambda = lambda_seq)
-
 tibble(lambda = cv_object$lambda,
 mean_cv_error = cv_object$cvm) %>%
 ggplot(aes(x = lambda, y = mean_cv_error)) +
@@ -225,10 +223,8 @@ geom_point()
 best_lambda <- cv_object$lambda.min
 # Refit the model using the best lambda
 final_model2 <- glmnet(X2, y, family = "binomial", alpha = 0.5, lambda = best_lambda)
-
 selectedData_test_set <- selectedData_test_set|> select(-status)
 test_predictions_log_odds2 <- predict(final_model, newx = as.matrix(test_set2))
-
 # Convert log-odds to probabilities
 test_predictions_probElastic2 <- plogis(test_predictions_log_odds2)
 # Create the ROC curve
@@ -240,7 +236,14 @@ plot(roc_curve, main = "ROC Curve", col = "#1c61b6", lwd = 2)
 lines(roc_curveStep,col='yellow')
 lines(roc_curvenet2,col='green')
 lines(roc_curveStep_2,col='purple')
-
+M1=paste('M1',round(auc(roc_curveStep),4))
+M2=paste('M2',round(auc(roc_curveStep_2),4))
+M3=paste('M3',round(auc(roc_curve),4))
+M4=paste('M4:',round(auc(roc_curvenet2),4))
+legend("bottomright", 
+       legend=c(M1,M2,M3,M4),
+       col=c("yellow","purple","#1c61b6","green"), 
+       lwd=2)
 
 ```
 Based on the ROC and AUC, final_model2 is the best prediction. 

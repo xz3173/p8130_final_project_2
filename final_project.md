@@ -170,7 +170,552 @@ clean_data = data |>
     progesterone_status = as.numeric(factor(progesterone_status, levels = c("Negative", "Positive"))) - 1,
     status = as.numeric(factor(status, levels = c("Dead", "Alive"))) - 1)|>
   rename(regional_node_positive = reginol_node_positive)
+
+#Table
+proj2 = clean_data |>
+tbl_summary(by="status",
+  missing_text = "(Missing)", # counts missing values
+  statistic = list(all_continuous() ~ "mean={mean} (min={min}, max={max}, sd={sd})",
+                   all_categorical() ~ "n={n} (p={p}%)") # stats for categorical
+ # specify variables to include
+  ) |>
+bold_labels()  |>
+italicize_levels()
+proj2
 ```
+
+<div id="osncjrvket" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#osncjrvket table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+&#10;#osncjrvket thead, #osncjrvket tbody, #osncjrvket tfoot, #osncjrvket tr, #osncjrvket td, #osncjrvket th {
+  border-style: none;
+}
+&#10;#osncjrvket p {
+  margin: 0;
+  padding: 0;
+}
+&#10;#osncjrvket .gt_table {
+  display: table;
+  border-collapse: collapse;
+  line-height: normal;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+&#10;#osncjrvket .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+&#10;#osncjrvket .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+&#10;#osncjrvket .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+&#10;#osncjrvket .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+&#10;#osncjrvket .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+&#10;#osncjrvket .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+&#10;#osncjrvket .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+&#10;#osncjrvket .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+&#10;#osncjrvket .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+&#10;#osncjrvket .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+&#10;#osncjrvket .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+&#10;#osncjrvket .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+&#10;#osncjrvket .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+&#10;#osncjrvket .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+&#10;#osncjrvket .gt_from_md > :first-child {
+  margin-top: 0;
+}
+&#10;#osncjrvket .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+&#10;#osncjrvket .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+&#10;#osncjrvket .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+&#10;#osncjrvket .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+&#10;#osncjrvket .gt_row_group_first td {
+  border-top-width: 2px;
+}
+&#10;#osncjrvket .gt_row_group_first th {
+  border-top-width: 2px;
+}
+&#10;#osncjrvket .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+&#10;#osncjrvket .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+&#10;#osncjrvket .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+&#10;#osncjrvket .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+&#10;#osncjrvket .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+&#10;#osncjrvket .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+&#10;#osncjrvket .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #D3D3D3;
+}
+&#10;#osncjrvket .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+&#10;#osncjrvket .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+&#10;#osncjrvket .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+&#10;#osncjrvket .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+&#10;#osncjrvket .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+&#10;#osncjrvket .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+&#10;#osncjrvket .gt_left {
+  text-align: left;
+}
+&#10;#osncjrvket .gt_center {
+  text-align: center;
+}
+&#10;#osncjrvket .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+&#10;#osncjrvket .gt_font_normal {
+  font-weight: normal;
+}
+&#10;#osncjrvket .gt_font_bold {
+  font-weight: bold;
+}
+&#10;#osncjrvket .gt_font_italic {
+  font-style: italic;
+}
+&#10;#osncjrvket .gt_super {
+  font-size: 65%;
+}
+&#10;#osncjrvket .gt_footnote_marks {
+  font-size: 75%;
+  vertical-align: 0.4em;
+  position: initial;
+}
+&#10;#osncjrvket .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+&#10;#osncjrvket .gt_indent_1 {
+  text-indent: 5px;
+}
+&#10;#osncjrvket .gt_indent_2 {
+  text-indent: 10px;
+}
+&#10;#osncjrvket .gt_indent_3 {
+  text-indent: 15px;
+}
+&#10;#osncjrvket .gt_indent_4 {
+  text-indent: 20px;
+}
+&#10;#osncjrvket .gt_indent_5 {
+  text-indent: 25px;
+}
+</style>
+<table class="gt_table" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+  <thead>
+    &#10;    <tr class="gt_col_headings">
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id="&lt;strong&gt;Characteristic&lt;/strong&gt;"><strong>Characteristic</strong></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="&lt;strong&gt;0&lt;/strong&gt;, N = 616&lt;span class=&quot;gt_footnote_marks&quot; style=&quot;white-space:nowrap;font-style:italic;font-weight:normal;&quot;&gt;&lt;sup&gt;1&lt;/sup&gt;&lt;/span&gt;"><strong>0</strong>, N = 616<span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>1</sup></span></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="&lt;strong&gt;1&lt;/strong&gt;, N = 3,408&lt;span class=&quot;gt_footnote_marks&quot; style=&quot;white-space:nowrap;font-style:italic;font-weight:normal;&quot;&gt;&lt;sup&gt;1&lt;/sup&gt;&lt;/span&gt;"><strong>1</strong>, N = 3,408<span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>1</sup></span></th>
+    </tr>
+  </thead>
+  <tbody class="gt_table_body">
+    <tr><td headers="label" class="gt_row gt_left" style="font-weight: bold;">age</td>
+<td headers="stat_1" class="gt_row gt_center">mean=55 (min=30, max=69, sd=10)</td>
+<td headers="stat_2" class="gt_row gt_center">mean=54 (min=30, max=69, sd=9)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-weight: bold;">race</td>
+<td headers="stat_1" class="gt_row gt_center"><br /></td>
+<td headers="stat_2" class="gt_row gt_center"><br /></td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-style: italic;">    0</td>
+<td headers="stat_1" class="gt_row gt_center">n=510 (p=83%)</td>
+<td headers="stat_2" class="gt_row gt_center">n=2,903 (p=85%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-style: italic;">    1</td>
+<td headers="stat_1" class="gt_row gt_center">n=73 (p=12%)</td>
+<td headers="stat_2" class="gt_row gt_center">n=218 (p=6.4%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-style: italic;">    2</td>
+<td headers="stat_1" class="gt_row gt_center">n=33 (p=5.4%)</td>
+<td headers="stat_2" class="gt_row gt_center">n=287 (p=8.4%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-weight: bold;">marital_status</td>
+<td headers="stat_1" class="gt_row gt_center"><br /></td>
+<td headers="stat_2" class="gt_row gt_center"><br /></td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-style: italic;">    0</td>
+<td headers="stat_1" class="gt_row gt_center">n=358 (p=58%)</td>
+<td headers="stat_2" class="gt_row gt_center">n=2,285 (p=67%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-style: italic;">    1</td>
+<td headers="stat_1" class="gt_row gt_center">n=104 (p=17%)</td>
+<td headers="stat_2" class="gt_row gt_center">n=511 (p=15%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-style: italic;">    2</td>
+<td headers="stat_1" class="gt_row gt_center">n=90 (p=15%)</td>
+<td headers="stat_2" class="gt_row gt_center">n=396 (p=12%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-style: italic;">    3</td>
+<td headers="stat_1" class="gt_row gt_center">n=49 (p=8.0%)</td>
+<td headers="stat_2" class="gt_row gt_center">n=186 (p=5.5%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-style: italic;">    4</td>
+<td headers="stat_1" class="gt_row gt_center">n=15 (p=2.4%)</td>
+<td headers="stat_2" class="gt_row gt_center">n=30 (p=0.9%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-weight: bold;">t_stage</td>
+<td headers="stat_1" class="gt_row gt_center"><br /></td>
+<td headers="stat_2" class="gt_row gt_center"><br /></td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-style: italic;">    0</td>
+<td headers="stat_1" class="gt_row gt_center">n=157 (p=25%)</td>
+<td headers="stat_2" class="gt_row gt_center">n=1,446 (p=42%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-style: italic;">    1</td>
+<td headers="stat_1" class="gt_row gt_center">n=303 (p=49%)</td>
+<td headers="stat_2" class="gt_row gt_center">n=1,483 (p=44%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-style: italic;">    2</td>
+<td headers="stat_1" class="gt_row gt_center">n=116 (p=19%)</td>
+<td headers="stat_2" class="gt_row gt_center">n=417 (p=12%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-style: italic;">    3</td>
+<td headers="stat_1" class="gt_row gt_center">n=40 (p=6.5%)</td>
+<td headers="stat_2" class="gt_row gt_center">n=62 (p=1.8%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-weight: bold;">n_stage</td>
+<td headers="stat_1" class="gt_row gt_center"><br /></td>
+<td headers="stat_2" class="gt_row gt_center"><br /></td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-style: italic;">    0</td>
+<td headers="stat_1" class="gt_row gt_center">n=270 (p=44%)</td>
+<td headers="stat_2" class="gt_row gt_center">n=2,462 (p=72%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-style: italic;">    1</td>
+<td headers="stat_1" class="gt_row gt_center">n=165 (p=27%)</td>
+<td headers="stat_2" class="gt_row gt_center">n=655 (p=19%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-style: italic;">    2</td>
+<td headers="stat_1" class="gt_row gt_center">n=181 (p=29%)</td>
+<td headers="stat_2" class="gt_row gt_center">n=291 (p=8.5%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-weight: bold;">x6th_stage</td>
+<td headers="stat_1" class="gt_row gt_center"><br /></td>
+<td headers="stat_2" class="gt_row gt_center"><br /></td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-style: italic;">    0</td>
+<td headers="stat_1" class="gt_row gt_center">n=96 (p=16%)</td>
+<td headers="stat_2" class="gt_row gt_center">n=1,209 (p=35%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-style: italic;">    1</td>
+<td headers="stat_1" class="gt_row gt_center">n=135 (p=22%)</td>
+<td headers="stat_2" class="gt_row gt_center">n=995 (p=29%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-style: italic;">    2</td>
+<td headers="stat_1" class="gt_row gt_center">n=184 (p=30%)</td>
+<td headers="stat_2" class="gt_row gt_center">n=866 (p=25%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-style: italic;">    3</td>
+<td headers="stat_1" class="gt_row gt_center">n=20 (p=3.2%)</td>
+<td headers="stat_2" class="gt_row gt_center">n=47 (p=1.4%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-style: italic;">    4</td>
+<td headers="stat_1" class="gt_row gt_center">n=181 (p=29%)</td>
+<td headers="stat_2" class="gt_row gt_center">n=291 (p=8.5%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-weight: bold;">differentiate</td>
+<td headers="stat_1" class="gt_row gt_center"><br /></td>
+<td headers="stat_2" class="gt_row gt_center"><br /></td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-style: italic;">    0</td>
+<td headers="stat_1" class="gt_row gt_center">n=9 (p=1.5%)</td>
+<td headers="stat_2" class="gt_row gt_center">n=10 (p=0.3%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-style: italic;">    1</td>
+<td headers="stat_1" class="gt_row gt_center">n=263 (p=43%)</td>
+<td headers="stat_2" class="gt_row gt_center">n=848 (p=25%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-style: italic;">    2</td>
+<td headers="stat_1" class="gt_row gt_center">n=305 (p=50%)</td>
+<td headers="stat_2" class="gt_row gt_center">n=2,046 (p=60%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-style: italic;">    3</td>
+<td headers="stat_1" class="gt_row gt_center">n=39 (p=6.3%)</td>
+<td headers="stat_2" class="gt_row gt_center">n=504 (p=15%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-weight: bold;">grade</td>
+<td headers="stat_1" class="gt_row gt_center"><br /></td>
+<td headers="stat_2" class="gt_row gt_center"><br /></td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-style: italic;">    1</td>
+<td headers="stat_1" class="gt_row gt_center">n=39 (p=6.3%)</td>
+<td headers="stat_2" class="gt_row gt_center">n=504 (p=15%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-style: italic;">    2</td>
+<td headers="stat_1" class="gt_row gt_center">n=305 (p=50%)</td>
+<td headers="stat_2" class="gt_row gt_center">n=2,046 (p=60%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-style: italic;">    3</td>
+<td headers="stat_1" class="gt_row gt_center">n=263 (p=43%)</td>
+<td headers="stat_2" class="gt_row gt_center">n=848 (p=25%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-style: italic;">    4</td>
+<td headers="stat_1" class="gt_row gt_center">n=9 (p=1.5%)</td>
+<td headers="stat_2" class="gt_row gt_center">n=10 (p=0.3%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-weight: bold;">a_stage</td>
+<td headers="stat_1" class="gt_row gt_center">n=35 (p=5.7%)</td>
+<td headers="stat_2" class="gt_row gt_center">n=57 (p=1.7%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-weight: bold;">tumor_size</td>
+<td headers="stat_1" class="gt_row gt_center">mean=37 (min=1, max=140, sd=24)</td>
+<td headers="stat_2" class="gt_row gt_center">mean=29 (min=1, max=140, sd=20)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-weight: bold;">estrogen_status</td>
+<td headers="stat_1" class="gt_row gt_center">n=508 (p=82%)</td>
+<td headers="stat_2" class="gt_row gt_center">n=3,247 (p=95%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-weight: bold;">progesterone_status</td>
+<td headers="stat_1" class="gt_row gt_center">n=412 (p=67%)</td>
+<td headers="stat_2" class="gt_row gt_center">n=2,914 (p=86%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-weight: bold;">regional_node_examined</td>
+<td headers="stat_1" class="gt_row gt_center">mean=15 (min=1, max=57, sd=8)</td>
+<td headers="stat_2" class="gt_row gt_center">mean=14 (min=1, max=61, sd=8)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-weight: bold;">regional_node_positive</td>
+<td headers="stat_1" class="gt_row gt_center">mean=7.2 (min=1.0, max=46.0, sd=7.3)</td>
+<td headers="stat_2" class="gt_row gt_center">mean=3.6 (min=1.0, max=41.0, sd=4.4)</td></tr>
+  </tbody>
+  &#10;  <tfoot class="gt_footnotes">
+    <tr>
+      <td class="gt_footnote" colspan="3"><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>1</sup></span> mean=Mean (min=Minimum, max=Maximum, sd=SD); n=n (p=%)</td>
+    </tr>
+  </tfoot>
+</table>
+</div>
 
 \#Model fitting \#Based on boxplots, transformaiton is necesessary to
 reduce outliers \#cube root of tumor size \#log of regional_node_examied
@@ -222,13 +767,13 @@ corrplot(corplot)
 # Calculate the size of each of the data sets
 data_size = nrow(clean_data2)
 train_size = floor(0.8 * data_size)
-
 # Create a random sample of row indices for the training set
 train_indices = sample(sample(seq_len(data_size), size = train_size))
-
 # Subset the data into training and testing sets
+#FUll variable
 train_set = clean_data2[train_indices, ]
 selectedData_train_set = selected_data[train_indices,]
+
 test_set = clean_data2[-train_indices, ]
 selectedData_test_set = selected_data[-train_indices, ]
 ```
@@ -238,173 +783,153 @@ selectedData_test_set = selected_data[-train_indices, ]
 ``` r
 selected_train = train_set |>
   select(-tumor_size, -grade,-n_stage,-regional_node_positive,-x6th_stage)
-
-null_model = glm(status ~ 1, family = binomial(link = "logit"), data = selected_train)
-
+null_model = glm(status ~ 1, family = binomial(link = "logit"), data = selected_train)#cleaned data
 full_model=glm(status ~ . , family = binomial(link = "logit"), data = selected_train)
-
 interaction_race_age = glm(status ~ . + race:age, family = binomial(link = "logit"), data = selected_train)
 
 interaction_race_marital_status = glm(status ~ . + race:marital_status,  family = binomial(link = "logit"), data = selected_train)
 ```
 
-# Check logistic regression assumptions
-
-Binary logistic regression relies on underlying assumptions to be true:
-
-1.The outcome is a binary or dichotomous variable like yes vs no,
-positive vs negative, 1 vs 0. 2.There is a linear relationship between
-the logit of the outcome(status) and each predictor variables. Recall
-that the logit function is logit(p) = log(p/(1-p)), where p is the
-probabilities of the outcome. 3.There is no influential values in the
-continuous predictors. 4.There is no multicollinearity among the
-predictors.
-
-## Checking Linearity of continuous variables to the response
-
-\##HENRY - MAY BE NOT NECESSARY
-
 # Using Forward, BackWard
 
-    ## Start:  AIC=2782.19
+    ## Start:  AIC=2703.02
     ## status ~ 1
     ## 
     ##                          Df Deviance    AIC
-    ## + progesterone_status     1   2684.9 2688.9
-    ## + estrogen_status         1   2689.6 2693.6
-    ## + differentiate           1   2698.9 2702.9
-    ## + t_stage                 1   2705.8 2709.8
-    ## + marital_status          1   2758.5 2762.5
-    ## + a_stage                 1   2762.0 2766.0
-    ## + age                     1   2768.2 2772.2
-    ## + regional_node_examined  1   2777.7 2781.7
-    ## <none>                        2780.2 2782.2
-    ## + race                    1   2780.2 2784.2
+    ## + estrogen_status         1   2606.5 2610.5
+    ## + progesterone_status     1   2611.6 2615.6
+    ## + differentiate           1   2615.8 2619.8
+    ## + t_stage                 1   2625.8 2629.8
+    ## + a_stage                 1   2678.0 2682.0
+    ## + marital_status          1   2680.8 2684.8
+    ## + age                     1   2689.6 2693.6
+    ## + regional_node_examined  1   2697.0 2701.0
+    ## <none>                        2701.0 2703.0
+    ## + race                    1   2701.0 2705.0
     ## 
-    ## Step:  AIC=2688.88
-    ## status ~ progesterone_status
-    ## 
-    ##                          Df Deviance    AIC
-    ## + t_stage                 1   2620.4 2626.4
-    ## + differentiate           1   2632.0 2638.0
-    ## + estrogen_status         1   2659.5 2665.5
-    ## + marital_status          1   2666.5 2672.5
-    ## + a_stage                 1   2668.0 2674.0
-    ## + age                     1   2674.2 2680.2
-    ## <none>                        2684.9 2688.9
-    ## + regional_node_examined  1   2683.0 2689.0
-    ## + race                    1   2684.9 2690.9
-    ## 
-    ## Step:  AIC=2626.4
-    ## status ~ progesterone_status + t_stage
+    ## Step:  AIC=2610.48
+    ## status ~ estrogen_status
     ## 
     ##                          Df Deviance    AIC
-    ## + differentiate           1   2578.9 2586.9
-    ## + estrogen_status         1   2597.8 2605.8
-    ## + marital_status          1   2602.2 2610.2
-    ## + age                     1   2605.3 2613.3
-    ## + a_stage                 1   2616.4 2624.4
-    ## <none>                        2620.4 2626.4
-    ## + regional_node_examined  1   2620.2 2628.2
-    ## + race                    1   2620.4 2628.4
+    ## + t_stage                 1   2540.9 2546.9
+    ## + differentiate           1   2556.7 2562.7
+    ## + progesterone_status     1   2581.9 2587.9
+    ## + marital_status          1   2585.8 2591.8
+    ## + age                     1   2590.2 2596.2
+    ## + a_stage                 1   2590.6 2596.6
+    ## + regional_node_examined  1   2603.7 2609.7
+    ## <none>                        2606.5 2610.5
+    ## + race                    1   2606.3 2612.3
     ## 
-    ## Step:  AIC=2586.92
-    ## status ~ progesterone_status + t_stage + differentiate
-    ## 
-    ##                          Df Deviance    AIC
-    ## + age                     1   2557.0 2567.0
-    ## + marital_status          1   2560.7 2570.7
-    ## + estrogen_status         1   2565.2 2575.2
-    ## + a_stage                 1   2575.2 2585.2
-    ## <none>                        2578.9 2586.9
-    ## + regional_node_examined  1   2578.9 2588.9
-    ## + race                    1   2578.9 2588.9
-    ## 
-    ## Step:  AIC=2567
-    ## status ~ progesterone_status + t_stage + differentiate + age
+    ## Step:  AIC=2546.92
+    ## status ~ estrogen_status + t_stage
     ## 
     ##                          Df Deviance    AIC
-    ## + estrogen_status         1   2539.7 2551.7
-    ## + marital_status          1   2544.1 2556.1
-    ## + a_stage                 1   2552.8 2564.8
-    ## <none>                        2557.0 2567.0
-    ## + race                    1   2556.9 2568.9
-    ## + regional_node_examined  1   2557.0 2569.0
+    ## + differentiate           1   2501.9 2509.9
+    ## + progesterone_status     1   2518.6 2526.6
+    ## + age                     1   2519.1 2527.1
+    ## + marital_status          1   2521.7 2529.7
+    ## + a_stage                 1   2537.2 2545.2
+    ## <none>                        2540.9 2546.9
+    ## + regional_node_examined  1   2540.4 2548.4
+    ## + race                    1   2540.8 2548.8
     ## 
-    ## Step:  AIC=2551.74
-    ## status ~ progesterone_status + t_stage + differentiate + age + 
-    ##     estrogen_status
-    ## 
-    ##                          Df Deviance    AIC
-    ## + marital_status          1   2526.1 2540.1
-    ## + a_stage                 1   2536.5 2550.5
-    ## <none>                        2539.7 2551.7
-    ## + race                    1   2539.7 2553.7
-    ## + regional_node_examined  1   2539.7 2553.7
-    ## 
-    ## Step:  AIC=2540.14
-    ## status ~ progesterone_status + t_stage + differentiate + age + 
-    ##     estrogen_status + marital_status
+    ## Step:  AIC=2509.95
+    ## status ~ estrogen_status + t_stage + differentiate
     ## 
     ##                          Df Deviance    AIC
-    ## + a_stage                 1   2522.9 2538.9
-    ## <none>                        2526.1 2540.1
-    ## + regional_node_examined  1   2526.1 2542.1
-    ## + race                    1   2526.1 2542.1
+    ## + age                     1   2475.8 2485.8
+    ## + marital_status          1   2483.7 2493.7
+    ## + progesterone_status     1   2484.3 2494.3
+    ## + a_stage                 1   2498.4 2508.4
+    ## <none>                        2501.9 2509.9
+    ## + race                    1   2501.7 2511.7
+    ## + regional_node_examined  1   2501.9 2511.9
     ## 
-    ## Step:  AIC=2538.89
-    ## status ~ progesterone_status + t_stage + differentiate + age + 
-    ##     estrogen_status + marital_status + a_stage
+    ## Step:  AIC=2485.82
+    ## status ~ estrogen_status + t_stage + differentiate + age
     ## 
     ##                          Df Deviance    AIC
-    ## <none>                        2522.9 2538.9
-    ## + race                    1   2522.9 2540.9
-    ## + regional_node_examined  1   2522.9 2540.9
+    ## + progesterone_status     1   2461.1 2473.1
+    ## + marital_status          1   2463.1 2475.1
+    ## + a_stage                 1   2472.3 2484.3
+    ## <none>                        2475.8 2485.8
+    ## + regional_node_examined  1   2475.7 2487.7
+    ## + race                    1   2475.8 2487.8
+    ## 
+    ## Step:  AIC=2473.09
+    ## status ~ estrogen_status + t_stage + differentiate + age + progesterone_status
+    ## 
+    ##                          Df Deviance    AIC
+    ## + marital_status          1   2449.4 2463.4
+    ## + a_stage                 1   2457.1 2471.1
+    ## <none>                        2461.1 2473.1
+    ## + regional_node_examined  1   2460.9 2474.9
+    ## + race                    1   2461.1 2475.1
+    ## 
+    ## Step:  AIC=2463.45
+    ## status ~ estrogen_status + t_stage + differentiate + age + progesterone_status + 
+    ##     marital_status
+    ## 
+    ##                          Df Deviance    AIC
+    ## + a_stage                 1   2445.6 2461.6
+    ## <none>                        2449.4 2463.4
+    ## + regional_node_examined  1   2449.3 2465.3
+    ## + race                    1   2449.4 2465.4
+    ## 
+    ## Step:  AIC=2461.58
+    ## status ~ estrogen_status + t_stage + differentiate + age + progesterone_status + 
+    ##     marital_status + a_stage
+    ## 
+    ##                          Df Deviance    AIC
+    ## <none>                        2445.6 2461.6
+    ## + regional_node_examined  1   2445.5 2463.5
+    ## + race                    1   2445.6 2463.6
 
-    ## Start:  AIC=2542.89
+    ## Start:  AIC=2465.47
     ## status ~ age + race + marital_status + t_stage + differentiate + 
     ##     a_stage + estrogen_status + progesterone_status + regional_node_examined
     ## 
     ##                          Df Deviance    AIC
-    ## - regional_node_examined  1   2522.9 2540.9
-    ## - race                    1   2522.9 2540.9
-    ## <none>                        2522.9 2542.9
-    ## - a_stage                 1   2526.1 2544.1
-    ## - marital_status          1   2536.5 2554.5
-    ## - estrogen_status         1   2539.8 2557.8
-    ## - progesterone_status     1   2541.6 2559.6
-    ## - age                     1   2542.5 2560.5
-    ## - differentiate           1   2559.6 2577.6
-    ## - t_stage                 1   2567.4 2585.4
+    ## - race                    1   2445.5 2463.5
+    ## - regional_node_examined  1   2445.6 2463.6
+    ## <none>                        2445.5 2465.5
+    ## - a_stage                 1   2449.3 2467.3
+    ## - marital_status          1   2457.0 2475.0
+    ## - progesterone_status     1   2459.6 2477.6
+    ## - age                     1   2463.6 2481.6
+    ## - estrogen_status         1   2464.7 2482.7
+    ## - differentiate           1   2482.4 2500.4
+    ## - t_stage                 1   2489.9 2507.9
     ## 
-    ## Step:  AIC=2540.89
-    ## status ~ age + race + marital_status + t_stage + differentiate + 
-    ##     a_stage + estrogen_status + progesterone_status
+    ## Step:  AIC=2463.48
+    ## status ~ age + marital_status + t_stage + differentiate + a_stage + 
+    ##     estrogen_status + progesterone_status + regional_node_examined
     ## 
-    ##                       Df Deviance    AIC
-    ## - race                 1   2522.9 2538.9
-    ## <none>                     2522.9 2540.9
-    ## - a_stage              1   2526.1 2542.1
-    ## - marital_status       1   2536.5 2552.5
-    ## - estrogen_status      1   2539.8 2555.8
-    ## - progesterone_status  1   2541.6 2557.6
-    ## - age                  1   2542.5 2558.5
-    ## - differentiate        1   2559.8 2575.8
-    ## - t_stage              1   2567.8 2583.8
+    ##                          Df Deviance    AIC
+    ## - regional_node_examined  1   2445.6 2461.6
+    ## <none>                        2445.5 2463.5
+    ## - a_stage                 1   2449.3 2465.3
+    ## - marital_status          1   2457.0 2473.0
+    ## - progesterone_status     1   2459.6 2475.6
+    ## - age                     1   2463.8 2479.8
+    ## - estrogen_status         1   2464.7 2480.7
+    ## - differentiate           1   2482.4 2498.4
+    ## - t_stage                 1   2490.0 2506.0
     ## 
-    ## Step:  AIC=2538.89
+    ## Step:  AIC=2461.58
     ## status ~ age + marital_status + t_stage + differentiate + a_stage + 
     ##     estrogen_status + progesterone_status
     ## 
     ##                       Df Deviance    AIC
-    ## <none>                     2522.9 2538.9
-    ## - a_stage              1   2526.1 2540.1
-    ## - marital_status       1   2536.5 2550.5
-    ## - estrogen_status      1   2539.9 2553.9
-    ## - progesterone_status  1   2541.6 2555.6
-    ## - age                  1   2542.7 2556.7
-    ## - differentiate        1   2559.8 2573.8
-    ## - t_stage              1   2567.8 2581.8
+    ## <none>                     2445.6 2461.6
+    ## - a_stage              1   2449.4 2463.4
+    ## - marital_status       1   2457.1 2471.1
+    ## - progesterone_status  1   2459.7 2473.7
+    ## - age                  1   2463.8 2477.8
+    ## - estrogen_status      1   2464.9 2478.9
+    ## - differentiate        1   2483.0 2497.0
+    ## - t_stage              1   2490.8 2504.8
 
     ## 
     ## Call:
@@ -414,57 +939,57 @@ predictors.
     ## 
     ## Deviance Residuals: 
     ##     Min       1Q   Median       3Q      Max  
-    ## -2.5313   0.3530   0.4539   0.5824   1.7480  
+    ## -2.5486   0.3461   0.4407   0.5631   1.7342  
     ## 
     ## Coefficients:
     ##                      Estimate Std. Error z value Pr(>|z|)    
-    ## (Intercept)          1.570637   0.359045   4.374 1.22e-05 ***
-    ## age                 -0.026116   0.005936  -4.400 1.08e-05 ***
-    ## marital_status      -0.180202   0.048001  -3.754 0.000174 ***
-    ## t_stage             -0.444968   0.066122  -6.729 1.70e-11 ***
-    ## differentiate        0.510408   0.084940   6.009 1.87e-09 ***
-    ## a_stage             -0.506600   0.275308  -1.840 0.065750 .  
-    ## estrogen_status      0.789337   0.190743   4.138 3.50e-05 ***
-    ## progesterone_status  0.617193   0.138443   4.458 8.27e-06 ***
+    ## (Intercept)          1.556491   0.370338   4.203 2.64e-05 ***
+    ## age                 -0.025726   0.006087  -4.227 2.37e-05 ***
+    ## marital_status      -0.171449   0.049651  -3.453 0.000554 ***
+    ## t_stage             -0.451201   0.066795  -6.755 1.43e-11 ***
+    ## differentiate        0.525535   0.086914   6.047 1.48e-09 ***
+    ## a_stage             -0.555003   0.276458  -2.008 0.044691 *  
+    ## estrogen_status      0.860098   0.195049   4.410 1.04e-05 ***
+    ## progesterone_status  0.552567   0.142815   3.869 0.000109 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
     ## (Dispersion parameter for binomial family taken to be 1)
     ## 
-    ##     Null deviance: 2780.2  on 3218  degrees of freedom
-    ## Residual deviance: 2522.9  on 3211  degrees of freedom
-    ## AIC: 2538.9
+    ##     Null deviance: 2701.0  on 3218  degrees of freedom
+    ## Residual deviance: 2445.6  on 3211  degrees of freedom
+    ## AIC: 2461.6
     ## 
     ## Number of Fisher Scoring iterations: 5
 
     ## 
     ## Call:
-    ## glm(formula = status ~ progesterone_status + t_stage + differentiate + 
-    ##     age + estrogen_status + marital_status + a_stage, family = binomial(link = "logit"), 
+    ## glm(formula = status ~ estrogen_status + t_stage + differentiate + 
+    ##     age + progesterone_status + marital_status + a_stage, family = binomial(link = "logit"), 
     ##     data = selected_train)
     ## 
     ## Deviance Residuals: 
     ##     Min       1Q   Median       3Q      Max  
-    ## -2.5313   0.3530   0.4539   0.5824   1.7480  
+    ## -2.5486   0.3461   0.4407   0.5631   1.7342  
     ## 
     ## Coefficients:
     ##                      Estimate Std. Error z value Pr(>|z|)    
-    ## (Intercept)          1.570637   0.359045   4.374 1.22e-05 ***
-    ## progesterone_status  0.617193   0.138443   4.458 8.27e-06 ***
-    ## t_stage             -0.444968   0.066122  -6.729 1.70e-11 ***
-    ## differentiate        0.510408   0.084940   6.009 1.87e-09 ***
-    ## age                 -0.026116   0.005936  -4.400 1.08e-05 ***
-    ## estrogen_status      0.789337   0.190743   4.138 3.50e-05 ***
-    ## marital_status      -0.180202   0.048001  -3.754 0.000174 ***
-    ## a_stage             -0.506600   0.275308  -1.840 0.065750 .  
+    ## (Intercept)          1.556491   0.370338   4.203 2.64e-05 ***
+    ## estrogen_status      0.860098   0.195049   4.410 1.04e-05 ***
+    ## t_stage             -0.451201   0.066795  -6.755 1.43e-11 ***
+    ## differentiate        0.525535   0.086914   6.047 1.48e-09 ***
+    ## age                 -0.025726   0.006087  -4.227 2.37e-05 ***
+    ## progesterone_status  0.552567   0.142815   3.869 0.000109 ***
+    ## marital_status      -0.171449   0.049651  -3.453 0.000554 ***
+    ## a_stage             -0.555003   0.276458  -2.008 0.044691 *  
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
     ## (Dispersion parameter for binomial family taken to be 1)
     ## 
-    ##     Null deviance: 2780.2  on 3218  degrees of freedom
-    ## Residual deviance: 2522.9  on 3211  degrees of freedom
-    ## AIC: 2538.9
+    ##     Null deviance: 2701.0  on 3218  degrees of freedom
+    ## Residual deviance: 2445.6  on 3211  degrees of freedom
+    ## AIC: 2461.6
     ## 
     ## Number of Fisher Scoring iterations: 5
 
@@ -472,420 +997,183 @@ predictors.
     ## 
     ## Model 1: status ~ age + marital_status + t_stage + differentiate + a_stage + 
     ##     estrogen_status + progesterone_status
-    ## Model 2: status ~ progesterone_status + t_stage + differentiate + age + 
-    ##     estrogen_status + marital_status + a_stage
+    ## Model 2: status ~ estrogen_status + t_stage + differentiate + age + progesterone_status + 
+    ##     marital_status + a_stage
     ##   Resid. Df Resid. Dev Df Deviance Pr(>Chi)
-    ## 1      3211     2522.9                     
-    ## 2      3211     2522.9  0        0
+    ## 1      3211     2445.6                     
+    ## 2      3211     2445.6  0        0
 
     ## Setting levels: control = 0, case = 1
 
     ## Setting direction: controls < cases
 
-    ## Area under the curve: 0.7
-
-# Interaction: race + age
-
-``` r
-step_modelF_1 = step(null_model, scope = list(lower = null_model, upper = interaction_race_age), 
-                   direction = "forward")
-```
-
-    ## Start:  AIC=2782.19
-    ## status ~ 1
-    ## 
-    ##                          Df Deviance    AIC
-    ## + progesterone_status     1   2684.9 2688.9
-    ## + estrogen_status         1   2689.6 2693.6
-    ## + differentiate           1   2698.9 2702.9
-    ## + t_stage                 1   2705.8 2709.8
-    ## + marital_status          1   2758.5 2762.5
-    ## + a_stage                 1   2762.0 2766.0
-    ## + age                     1   2768.2 2772.2
-    ## + regional_node_examined  1   2777.7 2781.7
-    ## <none>                        2780.2 2782.2
-    ## + race                    1   2780.2 2784.2
-    ## 
-    ## Step:  AIC=2688.88
-    ## status ~ progesterone_status
-    ## 
-    ##                          Df Deviance    AIC
-    ## + t_stage                 1   2620.4 2626.4
-    ## + differentiate           1   2632.0 2638.0
-    ## + estrogen_status         1   2659.5 2665.5
-    ## + marital_status          1   2666.5 2672.5
-    ## + a_stage                 1   2668.0 2674.0
-    ## + age                     1   2674.2 2680.2
-    ## <none>                        2684.9 2688.9
-    ## + regional_node_examined  1   2683.0 2689.0
-    ## + race                    1   2684.9 2690.9
-    ## 
-    ## Step:  AIC=2626.4
-    ## status ~ progesterone_status + t_stage
-    ## 
-    ##                          Df Deviance    AIC
-    ## + differentiate           1   2578.9 2586.9
-    ## + estrogen_status         1   2597.8 2605.8
-    ## + marital_status          1   2602.2 2610.2
-    ## + age                     1   2605.3 2613.3
-    ## + a_stage                 1   2616.4 2624.4
-    ## <none>                        2620.4 2626.4
-    ## + regional_node_examined  1   2620.2 2628.2
-    ## + race                    1   2620.4 2628.4
-    ## 
-    ## Step:  AIC=2586.92
-    ## status ~ progesterone_status + t_stage + differentiate
-    ## 
-    ##                          Df Deviance    AIC
-    ## + age                     1   2557.0 2567.0
-    ## + marital_status          1   2560.7 2570.7
-    ## + estrogen_status         1   2565.2 2575.2
-    ## + a_stage                 1   2575.2 2585.2
-    ## <none>                        2578.9 2586.9
-    ## + regional_node_examined  1   2578.9 2588.9
-    ## + race                    1   2578.9 2588.9
-    ## 
-    ## Step:  AIC=2567
-    ## status ~ progesterone_status + t_stage + differentiate + age
-    ## 
-    ##                          Df Deviance    AIC
-    ## + estrogen_status         1   2539.7 2551.7
-    ## + marital_status          1   2544.1 2556.1
-    ## + a_stage                 1   2552.8 2564.8
-    ## <none>                        2557.0 2567.0
-    ## + race                    1   2556.9 2568.9
-    ## + regional_node_examined  1   2557.0 2569.0
-    ## 
-    ## Step:  AIC=2551.74
-    ## status ~ progesterone_status + t_stage + differentiate + age + 
-    ##     estrogen_status
-    ## 
-    ##                          Df Deviance    AIC
-    ## + marital_status          1   2526.1 2540.1
-    ## + a_stage                 1   2536.5 2550.5
-    ## <none>                        2539.7 2551.7
-    ## + race                    1   2539.7 2553.7
-    ## + regional_node_examined  1   2539.7 2553.7
-    ## 
-    ## Step:  AIC=2540.14
-    ## status ~ progesterone_status + t_stage + differentiate + age + 
-    ##     estrogen_status + marital_status
-    ## 
-    ##                          Df Deviance    AIC
-    ## + a_stage                 1   2522.9 2538.9
-    ## <none>                        2526.1 2540.1
-    ## + regional_node_examined  1   2526.1 2542.1
-    ## + race                    1   2526.1 2542.1
-    ## 
-    ## Step:  AIC=2538.89
-    ## status ~ progesterone_status + t_stage + differentiate + age + 
-    ##     estrogen_status + marital_status + a_stage
-    ## 
-    ##                          Df Deviance    AIC
-    ## <none>                        2522.9 2538.9
-    ## + race                    1   2522.9 2540.9
-    ## + regional_node_examined  1   2522.9 2540.9
-
-``` r
-step_model_1 = step(interaction_race_age, direction = "backward")
-```
-
-    ## Start:  AIC=2544.32
-    ## status ~ age + race + marital_status + t_stage + differentiate + 
-    ##     a_stage + estrogen_status + progesterone_status + regional_node_examined + 
-    ##     race:age
-    ## 
-    ##                          Df Deviance    AIC
-    ## - regional_node_examined  1   2522.3 2542.3
-    ## - age:race                1   2522.9 2542.9
-    ## <none>                        2522.3 2544.3
-    ## - a_stage                 1   2525.4 2545.4
-    ## - marital_status          1   2536.1 2556.1
-    ## - estrogen_status         1   2539.4 2559.4
-    ## - progesterone_status     1   2541.1 2561.1
-    ## - differentiate           1   2559.2 2579.2
-    ## - t_stage                 1   2566.9 2586.9
-    ## 
-    ## Step:  AIC=2542.32
-    ## status ~ age + race + marital_status + t_stage + differentiate + 
-    ##     a_stage + estrogen_status + progesterone_status + age:race
-    ## 
-    ##                       Df Deviance    AIC
-    ## - age:race             1   2522.9 2540.9
-    ## <none>                     2522.3 2542.3
-    ## - a_stage              1   2525.4 2543.4
-    ## - marital_status       1   2536.1 2554.1
-    ## - estrogen_status      1   2539.4 2557.4
-    ## - progesterone_status  1   2541.1 2559.1
-    ## - differentiate        1   2559.5 2577.5
-    ## - t_stage              1   2567.3 2585.3
-    ## 
-    ## Step:  AIC=2540.89
-    ## status ~ age + race + marital_status + t_stage + differentiate + 
-    ##     a_stage + estrogen_status + progesterone_status
-    ## 
-    ##                       Df Deviance    AIC
-    ## - race                 1   2522.9 2538.9
-    ## <none>                     2522.9 2540.9
-    ## - a_stage              1   2526.1 2542.1
-    ## - marital_status       1   2536.5 2552.5
-    ## - estrogen_status      1   2539.8 2555.8
-    ## - progesterone_status  1   2541.6 2557.6
-    ## - age                  1   2542.5 2558.5
-    ## - differentiate        1   2559.8 2575.8
-    ## - t_stage              1   2567.8 2583.8
-    ## 
-    ## Step:  AIC=2538.89
-    ## status ~ age + marital_status + t_stage + differentiate + a_stage + 
-    ##     estrogen_status + progesterone_status
-    ## 
-    ##                       Df Deviance    AIC
-    ## <none>                     2522.9 2538.9
-    ## - a_stage              1   2526.1 2540.1
-    ## - marital_status       1   2536.5 2550.5
-    ## - estrogen_status      1   2539.9 2553.9
-    ## - progesterone_status  1   2541.6 2555.6
-    ## - age                  1   2542.7 2556.7
-    ## - differentiate        1   2559.8 2573.8
-    ## - t_stage              1   2567.8 2581.8
-
-``` r
-summary(step_model_1)
-```
+    ## Area under the curve: 0.6849
 
     ## 
     ## Call:
-    ## glm(formula = status ~ age + marital_status + t_stage + differentiate + 
-    ##     a_stage + estrogen_status + progesterone_status, family = binomial(link = "logit"), 
+    ## glm(formula = status ~ estrogen_status + t_stage + differentiate + 
+    ##     age + progesterone_status + marital_status + a_stage, family = binomial(link = "logit"), 
     ##     data = selected_train)
     ## 
     ## Deviance Residuals: 
     ##     Min       1Q   Median       3Q      Max  
-    ## -2.5313   0.3530   0.4539   0.5824   1.7480  
+    ## -2.5486   0.3461   0.4407   0.5631   1.7342  
     ## 
     ## Coefficients:
     ##                      Estimate Std. Error z value Pr(>|z|)    
-    ## (Intercept)          1.570637   0.359045   4.374 1.22e-05 ***
-    ## age                 -0.026116   0.005936  -4.400 1.08e-05 ***
-    ## marital_status      -0.180202   0.048001  -3.754 0.000174 ***
-    ## t_stage             -0.444968   0.066122  -6.729 1.70e-11 ***
-    ## differentiate        0.510408   0.084940   6.009 1.87e-09 ***
-    ## a_stage             -0.506600   0.275308  -1.840 0.065750 .  
-    ## estrogen_status      0.789337   0.190743   4.138 3.50e-05 ***
-    ## progesterone_status  0.617193   0.138443   4.458 8.27e-06 ***
+    ## (Intercept)          1.556491   0.370338   4.203 2.64e-05 ***
+    ## estrogen_status      0.860098   0.195049   4.410 1.04e-05 ***
+    ## t_stage             -0.451201   0.066795  -6.755 1.43e-11 ***
+    ## differentiate        0.525535   0.086914   6.047 1.48e-09 ***
+    ## age                 -0.025726   0.006087  -4.227 2.37e-05 ***
+    ## progesterone_status  0.552567   0.142815   3.869 0.000109 ***
+    ## marital_status      -0.171449   0.049651  -3.453 0.000554 ***
+    ## a_stage             -0.555003   0.276458  -2.008 0.044691 *  
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
     ## (Dispersion parameter for binomial family taken to be 1)
     ## 
-    ##     Null deviance: 2780.2  on 3218  degrees of freedom
-    ## Residual deviance: 2522.9  on 3211  degrees of freedom
-    ## AIC: 2538.9
+    ##     Null deviance: 2701.0  on 3218  degrees of freedom
+    ## Residual deviance: 2445.6  on 3211  degrees of freedom
+    ## AIC: 2461.6
     ## 
     ## Number of Fisher Scoring iterations: 5
 
-``` r
-summary(step_modelF_1)
-```
-
-    ## 
-    ## Call:
-    ## glm(formula = status ~ progesterone_status + t_stage + differentiate + 
-    ##     age + estrogen_status + marital_status + a_stage, family = binomial(link = "logit"), 
-    ##     data = selected_train)
-    ## 
-    ## Deviance Residuals: 
-    ##     Min       1Q   Median       3Q      Max  
-    ## -2.5313   0.3530   0.4539   0.5824   1.7480  
-    ## 
-    ## Coefficients:
-    ##                      Estimate Std. Error z value Pr(>|z|)    
-    ## (Intercept)          1.570637   0.359045   4.374 1.22e-05 ***
-    ## progesterone_status  0.617193   0.138443   4.458 8.27e-06 ***
-    ## t_stage             -0.444968   0.066122  -6.729 1.70e-11 ***
-    ## differentiate        0.510408   0.084940   6.009 1.87e-09 ***
-    ## age                 -0.026116   0.005936  -4.400 1.08e-05 ***
-    ## estrogen_status      0.789337   0.190743   4.138 3.50e-05 ***
-    ## marital_status      -0.180202   0.048001  -3.754 0.000174 ***
-    ## a_stage             -0.506600   0.275308  -1.840 0.065750 .  
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-    ## 
-    ## (Dispersion parameter for binomial family taken to be 1)
-    ## 
-    ##     Null deviance: 2780.2  on 3218  degrees of freedom
-    ## Residual deviance: 2522.9  on 3211  degrees of freedom
-    ## AIC: 2538.9
-    ## 
-    ## Number of Fisher Scoring iterations: 5
-
-``` r
-anova(step_model_1,step_modelF_1,test="Chisq")
-```
-
-    ## Analysis of Deviance Table
-    ## 
-    ## Model 1: status ~ age + marital_status + t_stage + differentiate + a_stage + 
-    ##     estrogen_status + progesterone_status
-    ## Model 2: status ~ progesterone_status + t_stage + differentiate + age + 
-    ##     estrogen_status + marital_status + a_stage
-    ##   Resid. Df Resid. Dev Df Deviance Pr(>Chi)
-    ## 1      3211     2522.9                     
-    ## 2      3211     2522.9  0        0
-
-``` r
-test_predictions_log_oddsStep_1 = predict(step_model_1, newdata  = (test_set),type='response')
-
-test_predictions_probStep_1 = plogis(test_predictions_log_oddsStep_1)
-
-roc_curveStep_1 = roc(response = (test_set$status), predictor = as.numeric(test_predictions_probStep_1))
-```
-
-    ## Setting levels: control = 0, case = 1
-
-    ## Setting direction: controls < cases
-
-``` r
-auc(roc_curveStep_1)
-```
-
-    ## Area under the curve: 0.7
-
-# Interaction: race + marital_status
+# Interaction: race \*marital_status
 
 ``` r
 step_modelF_2 = step(null_model, scope = list(lower = null_model, upper = interaction_race_marital_status), 
                    direction = "forward")
 ```
 
-    ## Start:  AIC=2782.19
+    ## Start:  AIC=2703.02
     ## status ~ 1
     ## 
     ##                          Df Deviance    AIC
-    ## + progesterone_status     1   2684.9 2688.9
-    ## + estrogen_status         1   2689.6 2693.6
-    ## + differentiate           1   2698.9 2702.9
-    ## + t_stage                 1   2705.8 2709.8
-    ## + marital_status          1   2758.5 2762.5
-    ## + a_stage                 1   2762.0 2766.0
-    ## + age                     1   2768.2 2772.2
-    ## + regional_node_examined  1   2777.7 2781.7
-    ## <none>                        2780.2 2782.2
-    ## + race                    1   2780.2 2784.2
+    ## + estrogen_status         1   2606.5 2610.5
+    ## + progesterone_status     1   2611.6 2615.6
+    ## + differentiate           1   2615.8 2619.8
+    ## + t_stage                 1   2625.8 2629.8
+    ## + a_stage                 1   2678.0 2682.0
+    ## + marital_status          1   2680.8 2684.8
+    ## + age                     1   2689.6 2693.6
+    ## + regional_node_examined  1   2697.0 2701.0
+    ## <none>                        2701.0 2703.0
+    ## + race                    1   2701.0 2705.0
     ## 
-    ## Step:  AIC=2688.88
-    ## status ~ progesterone_status
-    ## 
-    ##                          Df Deviance    AIC
-    ## + t_stage                 1   2620.4 2626.4
-    ## + differentiate           1   2632.0 2638.0
-    ## + estrogen_status         1   2659.5 2665.5
-    ## + marital_status          1   2666.5 2672.5
-    ## + a_stage                 1   2668.0 2674.0
-    ## + age                     1   2674.2 2680.2
-    ## <none>                        2684.9 2688.9
-    ## + regional_node_examined  1   2683.0 2689.0
-    ## + race                    1   2684.9 2690.9
-    ## 
-    ## Step:  AIC=2626.4
-    ## status ~ progesterone_status + t_stage
+    ## Step:  AIC=2610.48
+    ## status ~ estrogen_status
     ## 
     ##                          Df Deviance    AIC
-    ## + differentiate           1   2578.9 2586.9
-    ## + estrogen_status         1   2597.8 2605.8
-    ## + marital_status          1   2602.2 2610.2
-    ## + age                     1   2605.3 2613.3
-    ## + a_stage                 1   2616.4 2624.4
-    ## <none>                        2620.4 2626.4
-    ## + regional_node_examined  1   2620.2 2628.2
-    ## + race                    1   2620.4 2628.4
+    ## + t_stage                 1   2540.9 2546.9
+    ## + differentiate           1   2556.7 2562.7
+    ## + progesterone_status     1   2581.9 2587.9
+    ## + marital_status          1   2585.8 2591.8
+    ## + age                     1   2590.2 2596.2
+    ## + a_stage                 1   2590.6 2596.6
+    ## + regional_node_examined  1   2603.7 2609.7
+    ## <none>                        2606.5 2610.5
+    ## + race                    1   2606.3 2612.3
     ## 
-    ## Step:  AIC=2586.92
-    ## status ~ progesterone_status + t_stage + differentiate
-    ## 
-    ##                          Df Deviance    AIC
-    ## + age                     1   2557.0 2567.0
-    ## + marital_status          1   2560.7 2570.7
-    ## + estrogen_status         1   2565.2 2575.2
-    ## + a_stage                 1   2575.2 2585.2
-    ## <none>                        2578.9 2586.9
-    ## + regional_node_examined  1   2578.9 2588.9
-    ## + race                    1   2578.9 2588.9
-    ## 
-    ## Step:  AIC=2567
-    ## status ~ progesterone_status + t_stage + differentiate + age
+    ## Step:  AIC=2546.92
+    ## status ~ estrogen_status + t_stage
     ## 
     ##                          Df Deviance    AIC
-    ## + estrogen_status         1   2539.7 2551.7
-    ## + marital_status          1   2544.1 2556.1
-    ## + a_stage                 1   2552.8 2564.8
-    ## <none>                        2557.0 2567.0
-    ## + race                    1   2556.9 2568.9
-    ## + regional_node_examined  1   2557.0 2569.0
+    ## + differentiate           1   2501.9 2509.9
+    ## + progesterone_status     1   2518.6 2526.6
+    ## + age                     1   2519.1 2527.1
+    ## + marital_status          1   2521.7 2529.7
+    ## + a_stage                 1   2537.2 2545.2
+    ## <none>                        2540.9 2546.9
+    ## + regional_node_examined  1   2540.4 2548.4
+    ## + race                    1   2540.8 2548.8
     ## 
-    ## Step:  AIC=2551.74
-    ## status ~ progesterone_status + t_stage + differentiate + age + 
-    ##     estrogen_status
-    ## 
-    ##                          Df Deviance    AIC
-    ## + marital_status          1   2526.1 2540.1
-    ## + a_stage                 1   2536.5 2550.5
-    ## <none>                        2539.7 2551.7
-    ## + race                    1   2539.7 2553.7
-    ## + regional_node_examined  1   2539.7 2553.7
-    ## 
-    ## Step:  AIC=2540.14
-    ## status ~ progesterone_status + t_stage + differentiate + age + 
-    ##     estrogen_status + marital_status
+    ## Step:  AIC=2509.95
+    ## status ~ estrogen_status + t_stage + differentiate
     ## 
     ##                          Df Deviance    AIC
-    ## + a_stage                 1   2522.9 2538.9
-    ## <none>                        2526.1 2540.1
-    ## + regional_node_examined  1   2526.1 2542.1
-    ## + race                    1   2526.1 2542.1
+    ## + age                     1   2475.8 2485.8
+    ## + marital_status          1   2483.7 2493.7
+    ## + progesterone_status     1   2484.3 2494.3
+    ## + a_stage                 1   2498.4 2508.4
+    ## <none>                        2501.9 2509.9
+    ## + race                    1   2501.7 2511.7
+    ## + regional_node_examined  1   2501.9 2511.9
     ## 
-    ## Step:  AIC=2538.89
-    ## status ~ progesterone_status + t_stage + differentiate + age + 
-    ##     estrogen_status + marital_status + a_stage
+    ## Step:  AIC=2485.82
+    ## status ~ estrogen_status + t_stage + differentiate + age
     ## 
     ##                          Df Deviance    AIC
-    ## <none>                        2522.9 2538.9
-    ## + race                    1   2522.9 2540.9
-    ## + regional_node_examined  1   2522.9 2540.9
+    ## + progesterone_status     1   2461.1 2473.1
+    ## + marital_status          1   2463.1 2475.1
+    ## + a_stage                 1   2472.3 2484.3
+    ## <none>                        2475.8 2485.8
+    ## + regional_node_examined  1   2475.7 2487.7
+    ## + race                    1   2475.8 2487.8
+    ## 
+    ## Step:  AIC=2473.09
+    ## status ~ estrogen_status + t_stage + differentiate + age + progesterone_status
+    ## 
+    ##                          Df Deviance    AIC
+    ## + marital_status          1   2449.4 2463.4
+    ## + a_stage                 1   2457.1 2471.1
+    ## <none>                        2461.1 2473.1
+    ## + regional_node_examined  1   2460.9 2474.9
+    ## + race                    1   2461.1 2475.1
+    ## 
+    ## Step:  AIC=2463.45
+    ## status ~ estrogen_status + t_stage + differentiate + age + progesterone_status + 
+    ##     marital_status
+    ## 
+    ##                          Df Deviance    AIC
+    ## + a_stage                 1   2445.6 2461.6
+    ## <none>                        2449.4 2463.4
+    ## + regional_node_examined  1   2449.3 2465.3
+    ## + race                    1   2449.4 2465.4
+    ## 
+    ## Step:  AIC=2461.58
+    ## status ~ estrogen_status + t_stage + differentiate + age + progesterone_status + 
+    ##     marital_status + a_stage
+    ## 
+    ##                          Df Deviance    AIC
+    ## <none>                        2445.6 2461.6
+    ## + regional_node_examined  1   2445.5 2463.5
+    ## + race                    1   2445.6 2463.6
 
 ``` r
 step_model_2 = step(interaction_race_marital_status, direction = "backward")
 ```
 
-    ## Start:  AIC=2539.46
+    ## Start:  AIC=2462.91
     ## status ~ age + race + marital_status + t_stage + differentiate + 
     ##     a_stage + estrogen_status + progesterone_status + regional_node_examined + 
     ##     race:marital_status
     ## 
     ##                          Df Deviance    AIC
-    ## - regional_node_examined  1   2517.5 2537.5
-    ## <none>                        2517.5 2539.5
-    ## - a_stage                 1   2520.9 2540.9
-    ## - race:marital_status     1   2522.9 2542.9
-    ## - estrogen_status         1   2534.5 2554.5
-    ## - progesterone_status     1   2536.1 2556.1
-    ## - age                     1   2536.5 2556.5
-    ## - differentiate           1   2554.3 2574.3
-    ## - t_stage                 1   2560.6 2580.6
+    ## - regional_node_examined  1   2441.0 2461.0
+    ## <none>                        2440.9 2462.9
+    ## - a_stage                 1   2444.8 2464.8
+    ## - race:marital_status     1   2445.5 2465.5
+    ## - progesterone_status     1   2455.1 2475.1
+    ## - age                     1   2458.4 2478.4
+    ## - estrogen_status         1   2459.8 2479.8
+    ## - differentiate           1   2478.8 2498.8
+    ## - t_stage                 1   2484.6 2504.6
     ## 
-    ## Step:  AIC=2537.46
+    ## Step:  AIC=2461.03
     ## status ~ age + race + marital_status + t_stage + differentiate + 
     ##     a_stage + estrogen_status + progesterone_status + race:marital_status
     ## 
     ##                       Df Deviance    AIC
-    ## <none>                     2517.5 2537.5
-    ## - a_stage              1   2520.9 2538.9
-    ## - race:marital_status  1   2522.9 2540.9
-    ## - estrogen_status      1   2534.5 2552.5
-    ## - progesterone_status  1   2536.1 2554.1
-    ## - age                  1   2536.5 2554.5
-    ## - differentiate        1   2554.6 2572.6
-    ## - t_stage              1   2561.0 2579.0
+    ## <none>                     2441.0 2461.0
+    ## - a_stage              1   2445.0 2463.0
+    ## - race:marital_status  1   2445.6 2463.6
+    ## - progesterone_status  1   2455.2 2473.2
+    ## - age                  1   2458.4 2476.4
+    ## - estrogen_status      1   2460.0 2478.0
+    ## - differentiate        1   2479.4 2497.4
+    ## - t_stage              1   2485.4 2503.4
 
 ``` r
 summary(step_model_2)
@@ -899,28 +1187,28 @@ summary(step_model_2)
     ## 
     ## Deviance Residuals: 
     ##     Min       1Q   Median       3Q      Max  
-    ## -2.6231   0.3528   0.4552   0.5791   1.9452  
+    ## -2.6453   0.3445   0.4436   0.5629   1.9201  
     ## 
     ## Coefficients:
     ##                      Estimate Std. Error z value Pr(>|z|)    
-    ## (Intercept)          1.504256   0.364651   4.125 3.70e-05 ***
-    ## age                 -0.025747   0.005962  -4.319 1.57e-05 ***
-    ## race                 0.147211   0.113443   1.298   0.1944    
-    ## marital_status      -0.130895   0.053038  -2.468   0.0136 *  
-    ## t_stage             -0.438824   0.066252  -6.624 3.51e-11 ***
-    ## differentiate        0.512156   0.085013   6.024 1.70e-09 ***
-    ## a_stage             -0.525599   0.275654  -1.907   0.0566 .  
-    ## estrogen_status      0.794240   0.191501   4.147 3.36e-05 ***
-    ## progesterone_status  0.617158   0.138682   4.450 8.58e-06 ***
-    ## race:marital_status -0.184933   0.079098  -2.338   0.0194 *  
+    ## (Intercept)          1.486778   0.375787   3.956 7.61e-05 ***
+    ## age                 -0.025235   0.006112  -4.129 3.65e-05 ***
+    ## race                 0.143325   0.115926   1.236 0.216328    
+    ## marital_status      -0.127195   0.054342  -2.341 0.019251 *  
+    ## t_stage             -0.447776   0.066883  -6.695 2.16e-11 ***
+    ## differentiate        0.532569   0.087011   6.121 9.32e-10 ***
+    ## a_stage             -0.561733   0.277234  -2.026 0.042744 *  
+    ## estrogen_status      0.854712   0.195537   4.371 1.24e-05 ***
+    ## progesterone_status  0.554383   0.142889   3.880 0.000105 ***
+    ## race:marital_status -0.179638   0.083879  -2.142 0.032223 *  
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
     ## (Dispersion parameter for binomial family taken to be 1)
     ## 
-    ##     Null deviance: 2780.2  on 3218  degrees of freedom
-    ## Residual deviance: 2517.5  on 3209  degrees of freedom
-    ## AIC: 2537.5
+    ##     Null deviance: 2701  on 3218  degrees of freedom
+    ## Residual deviance: 2441  on 3209  degrees of freedom
+    ## AIC: 2461
     ## 
     ## Number of Fisher Scoring iterations: 5
 
@@ -930,56 +1218,38 @@ summary(step_modelF_2)
 
     ## 
     ## Call:
-    ## glm(formula = status ~ progesterone_status + t_stage + differentiate + 
-    ##     age + estrogen_status + marital_status + a_stage, family = binomial(link = "logit"), 
+    ## glm(formula = status ~ estrogen_status + t_stage + differentiate + 
+    ##     age + progesterone_status + marital_status + a_stage, family = binomial(link = "logit"), 
     ##     data = selected_train)
     ## 
     ## Deviance Residuals: 
     ##     Min       1Q   Median       3Q      Max  
-    ## -2.5313   0.3530   0.4539   0.5824   1.7480  
+    ## -2.5486   0.3461   0.4407   0.5631   1.7342  
     ## 
     ## Coefficients:
     ##                      Estimate Std. Error z value Pr(>|z|)    
-    ## (Intercept)          1.570637   0.359045   4.374 1.22e-05 ***
-    ## progesterone_status  0.617193   0.138443   4.458 8.27e-06 ***
-    ## t_stage             -0.444968   0.066122  -6.729 1.70e-11 ***
-    ## differentiate        0.510408   0.084940   6.009 1.87e-09 ***
-    ## age                 -0.026116   0.005936  -4.400 1.08e-05 ***
-    ## estrogen_status      0.789337   0.190743   4.138 3.50e-05 ***
-    ## marital_status      -0.180202   0.048001  -3.754 0.000174 ***
-    ## a_stage             -0.506600   0.275308  -1.840 0.065750 .  
+    ## (Intercept)          1.556491   0.370338   4.203 2.64e-05 ***
+    ## estrogen_status      0.860098   0.195049   4.410 1.04e-05 ***
+    ## t_stage             -0.451201   0.066795  -6.755 1.43e-11 ***
+    ## differentiate        0.525535   0.086914   6.047 1.48e-09 ***
+    ## age                 -0.025726   0.006087  -4.227 2.37e-05 ***
+    ## progesterone_status  0.552567   0.142815   3.869 0.000109 ***
+    ## marital_status      -0.171449   0.049651  -3.453 0.000554 ***
+    ## a_stage             -0.555003   0.276458  -2.008 0.044691 *  
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
     ## (Dispersion parameter for binomial family taken to be 1)
     ## 
-    ##     Null deviance: 2780.2  on 3218  degrees of freedom
-    ## Residual deviance: 2522.9  on 3211  degrees of freedom
-    ## AIC: 2538.9
+    ##     Null deviance: 2701.0  on 3218  degrees of freedom
+    ## Residual deviance: 2445.6  on 3211  degrees of freedom
+    ## AIC: 2461.6
     ## 
     ## Number of Fisher Scoring iterations: 5
 
 ``` r
-anova(step_model_2,step_modelF_2,test="Chisq")
-```
-
-    ## Analysis of Deviance Table
-    ## 
-    ## Model 1: status ~ age + race + marital_status + t_stage + differentiate + 
-    ##     a_stage + estrogen_status + progesterone_status + race:marital_status
-    ## Model 2: status ~ progesterone_status + t_stage + differentiate + age + 
-    ##     estrogen_status + marital_status + a_stage
-    ##   Resid. Df Resid. Dev Df Deviance Pr(>Chi)  
-    ## 1      3209     2517.5                       
-    ## 2      3211     2522.9 -2  -5.4288  0.06624 .
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-``` r
 test_predictions_log_oddsStep_2 = predict(step_model_2, newdata  = (test_set),type='response')
-
 test_predictions_probStep_2 = plogis(test_predictions_log_oddsStep_2)
-
 roc_curveStep_2 = roc(response = (test_set$status), predictor = as.numeric(test_predictions_probStep_2))
 ```
 
@@ -991,7 +1261,7 @@ roc_curveStep_2 = roc(response = (test_set$status), predictor = as.numeric(test_
 auc(roc_curveStep_2)
 ```
 
-    ## Area under the curve: 0.6976
+    ## Area under the curve: 0.6874
 
 \#Elastic Net
 
@@ -1011,7 +1281,7 @@ ggplot(aes(x = lambda, y = mean_cv_error)) +
 geom_point()
 ```
 
-<img src="final_project_files/figure-gfm/unnamed-chunk-11-1.png" width="90%" />
+<img src="final_project_files/figure-gfm/unnamed-chunk-10-1.png" width="90%" />
 
 ``` r
 # Best lambda value
@@ -1036,7 +1306,7 @@ roc_curve <- roc(response = as.matrix(test_set$status), predictor = as.numeric(t
 auc(roc_curve)
 ```
 
-    ## Area under the curve: 0.7734
+    ## Area under the curve: 0.7505
 
 \#Elastic net 2 \##Training without full variables
 
@@ -1044,24 +1314,21 @@ auc(roc_curve)
 X2 <- as.matrix(selectedData_train_set[, setdiff(names(selectedData_train_set), "status")])  # Predictor variables
 # Use cross-validation to find the optimal lambda
 cv_object <- cv.glmnet(X2, y, family = "binomial", alpha = 0.5, type.measure = "class",nfolds=5, lambda = lambda_seq)
-
 tibble(lambda = cv_object$lambda,
 mean_cv_error = cv_object$cvm) %>%
 ggplot(aes(x = lambda, y = mean_cv_error)) +
 geom_point()
 ```
 
-<img src="final_project_files/figure-gfm/unnamed-chunk-12-1.png" width="90%" />
+<img src="final_project_files/figure-gfm/unnamed-chunk-11-1.png" width="90%" />
 
 ``` r
 # Best lambda value
 best_lambda <- cv_object$lambda.min
 # Refit the model using the best lambda
 final_model2 <- glmnet(X2, y, family = "binomial", alpha = 0.5, lambda = best_lambda)
-
 selectedData_test_set <- selectedData_test_set|> select(-status)
 test_predictions_log_odds2 <- predict(final_model, newx = as.matrix(test_set2))
-
 # Convert log-odds to probabilities
 test_predictions_probElastic2 <- plogis(test_predictions_log_odds2)
 # Create the ROC curve
@@ -1076,16 +1343,24 @@ roc_curvenet2 <- roc(response = (test_set$status), predictor = as.numeric(test_p
 auc(roc_curvenet2)
 ```
 
-    ## Area under the curve: 0.7734
+    ## Area under the curve: 0.7505
 
 ``` r
 plot(roc_curve, main = "ROC Curve", col = "#1c61b6", lwd = 2)
 lines(roc_curveStep,col='yellow')
 lines(roc_curvenet2,col='green')
 lines(roc_curveStep_2,col='purple')
+M1=paste('M1',round(auc(roc_curveStep),4))
+M2=paste('M2',round(auc(roc_curveStep_2),4))
+M3=paste('M3',round(auc(roc_curve),4))
+M4=paste('M4:',round(auc(roc_curvenet2),4))
+legend("bottomright", 
+       legend=c(M1,M2,M3,M4),
+       col=c("yellow","purple","#1c61b6","green"), 
+       lwd=2)
 ```
 
-<img src="final_project_files/figure-gfm/unnamed-chunk-12-2.png" width="90%" />
+<img src="final_project_files/figure-gfm/unnamed-chunk-11-2.png" width="90%" />
 Based on the ROC and AUC, final_model2 is the best prediction.
 finalModel has more variables than final_model2 but perform the same as
 finalModel2 Logistics regression without Elastic net has less AUC than
@@ -1103,8 +1378,6 @@ outcome <- as.factor(test_set$status)
 predicted_classes <- factor(predicted_classes, levels = c("0", "1"))
 outcome <- factor(outcome, levels = c("0", "1"))
 
-
-
 conf_matrix <- confusionMatrix(predicted_classes, outcome)
 conf_matrix
 ```
@@ -1113,26 +1386,26 @@ conf_matrix
     ## 
     ##           Reference
     ## Prediction   0   1
-    ##          0  11  11
-    ##          1 105 678
+    ##          0  10   6
+    ##          1 129 660
     ##                                           
-    ##                Accuracy : 0.8559          
-    ##                  95% CI : (0.8297, 0.8794)
-    ##     No Information Rate : 0.8559          
-    ##     P-Value [Acc > NIR] : 0.5247          
+    ##                Accuracy : 0.8323          
+    ##                  95% CI : (0.8047, 0.8575)
+    ##     No Information Rate : 0.8273          
+    ##     P-Value [Acc > NIR] : 0.3755          
     ##                                           
-    ##                   Kappa : 0.1189          
+    ##                   Kappa : 0.0968          
     ##                                           
     ##  Mcnemar's Test P-Value : <2e-16          
     ##                                           
-    ##             Sensitivity : 0.09483         
-    ##             Specificity : 0.98403         
-    ##          Pos Pred Value : 0.50000         
-    ##          Neg Pred Value : 0.86590         
-    ##              Prevalence : 0.14410         
-    ##          Detection Rate : 0.01366         
-    ##    Detection Prevalence : 0.02733         
-    ##       Balanced Accuracy : 0.53943         
+    ##             Sensitivity : 0.07194         
+    ##             Specificity : 0.99099         
+    ##          Pos Pred Value : 0.62500         
+    ##          Neg Pred Value : 0.83650         
+    ##              Prevalence : 0.17267         
+    ##          Detection Rate : 0.01242         
+    ##    Detection Prevalence : 0.01988         
+    ##       Balanced Accuracy : 0.53147         
     ##                                           
     ##        'Positive' Class : 0               
     ## 
