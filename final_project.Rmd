@@ -37,13 +37,13 @@ theme_set(theme_minimal() + theme(legend.position = "bottom"))
 
 ```
 
+# Load dataset
 ```{r}
 data = read_csv("./data/data.csv") |>
   janitor::clean_names()
 ```
 
-
-
+# Data cleaning
 ```{r}
 # Convert character to factor for regression analysis
 clean_data = data |>
@@ -60,8 +60,11 @@ clean_data = data |>
     progesterone_status = as.numeric(factor(progesterone_status, levels = c("Negative", "Positive"))) - 1,
     status = as.numeric(factor(status, levels = c("Dead", "Alive"))) - 1)|>
   rename(regional_node_positive = reginol_node_positive)
+```
 
-#Table
+# Generates a summary table 
+```{r}
+# Make descriptive statistics for each variable 
 proj2 = clean_data |>
 tbl_summary(by="status",
   missing_text = "(Missing)", # counts missing values
@@ -74,15 +77,15 @@ italicize_levels()
 proj2
 ```
 
-
+# Create another data set for making plots
 ```{r}
 clean_data2=clean_data
 ```
 
-# Pairs plot
-# Use `windows` for windows system / `quartz` for macos system
-# Use `quartz(width = 12, height = 12)` to open the window
-# Use `dev.off()` to close the window
+## Pairs plot
+## Use `windows` for windows system / `quartz` for macos system
+##  Use `quartz(width = 12, height = 12)` to open the window
+## Use `dev.off()` to close the window
 ```{r}
 if (!dir.exists("plots")) {
     dir.create("plots")
@@ -96,7 +99,7 @@ png("plots/pairs_plot.png",
 pairs(clean_data)
 ```
 
-# Corr plot
+## Corr plot
 ```{r}
 png("plots/corr_plot.png", 
     width = 12 * 600, 
@@ -107,7 +110,7 @@ corrplot(cor(clean_data), type = "upper", diag = FALSE)
 
 ```
 
-# Plotting boxplot
+## Plotting boxplot
 ```{r}
 plot_boxplot = function(data_vector, main_title, x_label = "") {
   boxplot(data_vector, 
@@ -136,7 +139,7 @@ for (col_name in column_names) {
 dev.off()
 ```
 
-# plotting histogram
+## plotting histogram
 ```{r}
 plot_histogram = 
   function(data_vector, main_title, x_label = "") {
@@ -252,7 +255,6 @@ boxplot(clean_data$regional_node_examined, main = "Regional Node Examined")
 13. Regional Node Examined: The box plot for 'Regional Node Examined' displays a right-skewed distribution with a significant number of outliers on the higher end, indicating that while most patients had a smaller number of nodes examined, there are some patients with a much larger number. Given the skewness and presence of outliers, a log transformation might be appropriate to normalize the distribution, especially if this variable is to be used in parametric statistical analyses that assume normality.
 
 
-
 ```{r}
 boxplot(clean_data$regional_node_positive, main = "Regional Node Positive")
 ```
@@ -260,14 +262,11 @@ boxplot(clean_data$regional_node_positive, main = "Regional Node Positive")
 14. Regional Node Positive: The box plot for 'Regional Node Positive' indicates a distribution with a large number of outliers on the upper end, reflecting that while most patients have a relatively low number of positive regional nodes, there are several patients with a significantly higher count. Given the right skewness and the presence of many outliers, a log transformation could be appropriate to reduce the skewness and diminish the influence of outliers.
 
 
-
-
 ```{r}
 boxplot(clean_data$survival_months, main = "Survival Months")
 ```
 
 15. Survival Months: The box plot for 'Survival Months' shows a distribution with a median below the halfway point of the box, suggesting a slight skew towards shorter survival times. There are outliers on the lower end, representing patients with very short survival times. Given the distribution's skewness and presence of outliers, a transformation such as logarithmic or square root might help to normalize the data, particularly if 'Survival Months' is used as a continuous predictor in regression models requiring normally distributed residuals.
-
 
 
 ## Race
@@ -281,8 +280,7 @@ p1 = ggplot(clean_data, aes(x = factor(race))) +
 ```
 
 #### Race Distribution
-
-**The bar chart indicates a significant imbalance in the race distribution of the patient sample, with the majority of patients being of the race categorized as 'o' (White). Races '1' (Black) and '2' (other) are much less represented, suggesting that the patient data may not be as diverse in terms of racial demographics.**
+The bar chart indicates a significant imbalance in the race distribution of the patient sample, with the majority of patients being of the race categorized as 'o' (White). Races '1' (Black) and '2' (other) are much less represented, suggesting that the patient data may not be as diverse in terms of racial demographics.
 
 ## Marital Status
 ```{r}
@@ -294,10 +292,8 @@ p2 = ggplot(clean_data, aes(x = factor(marital_status))) +
   ylab("Count")
 ```
 
-
-### Marital Status
-
-**The bar chart shows that the largest group of patients falls under the marital status category '0', which is represent married, while the other categories, which represent single, divorced, widowed, separated, are less frequent. This suggests that the married patients are more prevalent in this particular dataset.**
+#### Marital Status
+The bar chart shows that the largest group of patients falls under the marital status category '0', which is represent married, while the other categories, which represent single, divorced, widowed, separated, are less frequent. This suggests that the married patients are more prevalent in this particular dataset.
 
 ## t_stage
 ```{r}
@@ -486,12 +482,12 @@ ggplot(clean_data, aes(x = factor(differentiate),
   theme_minimal()
 ```
 
-# combine barplot for charactter variables
+## Combine barplot for charactter variables
 ```{r}
 p1 + p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9 + p10 + p11
 ```
 
-# Histogram for numeric variables
+## Histogram for numeric variables
 ```{r}
 par(mfrow = c(3,2))
 hist(data$age, main = "Age")
@@ -501,8 +497,7 @@ hist(data$reginol_node_positive, main = "Regional Node Positive")
 hist(data$survival_months, main = "Survival Months")
 ```
 
-# race : age
-
+## race : age
 ```{r}
 # Convert numerical values to factors with appropriate labels
 clean_data$race = factor(clean_data$race,
@@ -541,9 +536,7 @@ ggplot(summary_data_a, aes(x = age, y = count, fill = status)) +
 
 ```
 
-
-# race: marital status
-
+## race: marital status
 ```{r}
 # Convert numerical values to factors with appropriate labels
 
@@ -578,22 +571,13 @@ ggplot(summary_data_b, aes(x = marital_status, y = count, fill = status)) +
 
 The bar chart illustrates the count of individuals by marital status and their survival status, segmented by race. It's evident that for the White and Other race categories, the majority of individuals are married and alive, while the Black race category has a higher count of single individuals who are alive. Across all race categories, the number of deceased individuals is significantly lower than those alive, with the widowed status showing a higher count of deceased individuals particularly in the White race category.
 
-
-
 ```{r}
 data = data |>
   select(-survival_months)
 ```
 
-
-
-
-#Model fitting
-#Based on boxplots, transformaiton is necesessary to reduce outliers 
-#cube root of tumor size
-#log of regional_node_examied
-#log of regional_node_positive
-#Figure 1 
+# Model fitting
+Based on boxplots, transformaiton is necesessary to reduce outliers 
 ```{r}
 proj2 = data |>
 tbl_summary(by="status",
@@ -604,10 +588,11 @@ tbl_summary(by="status",
 bold_labels()  |>
 italicize_levels()
 
-
-
+#cube root of tumor size
 clean_data2$tumor_size= (clean_data$tumor_size)^(1/3)
+#log of regional_node_examied
 clean_data2$regional_node_examined = log(clean_data$regional_node_examined)
+#log of regional_node_positive
 clean_data2$regional_node_positive = log(clean_data$regional_node_positive)
 ```
 
@@ -644,10 +629,14 @@ selectedData_test_set = selected_data[-train_indices, ]
 
 # Fit a full model
 ```{R}
+# Data preparation
 selected_train = train_set |>
   select(-tumor_size, -grade,-n_stage,-regional_node_positive,-x6th_stage)
+# Fit a null model
 null_model = glm(status ~ 1, family = binomial(link = "logit"), data = selected_train)#cleaned data
+# Fit a full model
 full_model=glm(status ~ . , family = binomial(link = "logit"), data = selected_train)
+# Fit the interaction models
 interaction_race_age = glm(status ~ . + race:age, family = binomial(link = "logit"), data = selected_train)
 
 interaction_race_marital_status = glm(status ~ . + race:marital_status,  family = binomial(link = "logit"), data = selected_train)
@@ -655,13 +644,18 @@ interaction_race_marital_status = glm(status ~ . + race:marital_status,  family 
 
 # Using Forward, BackWard
 ```{r,echo=FALSE}
+# Forward Stepwise Model Selection:
 step_modelF = step(null_model, scope = list(lower = null_model, upper = full_model), 
                    direction = "forward")
+# Backward Stepwise Model Selection:
 step_model = step(full_model, direction = "backward")
+
+# Model Summaries
 summary(step_model)
 summary(step_modelF)
 anova(step_model,step_modelF,test="Chisq")
 
+# Make Prediction and create ROC Curve:
 test_predictions_log_oddsStep <- predict(step_model, newdata  = (test_set),type='response')
 test_predictions_probStep <- plogis(test_predictions_log_oddsStep)
 roc_curveStep <- roc(response = (test_set$status), predictor = as.numeric(test_predictions_probStep))
@@ -670,15 +664,19 @@ auc(roc_curveStep)
 summary(step_modelF)
 ```
 
-
 # Interaction: race *marital_status
 ```{r}
+# Forward Stepwise Model Selection with Interaction Term
 step_modelF_2 = step(null_model, scope = list(lower = null_model, upper = interaction_race_marital_status), 
                    direction = "forward")
+# Backward Stepwise Model Selection with Interaction Term:
 step_model_2 = step(interaction_race_marital_status, direction = "backward")
+
+# Model Summaries
 summary(step_model_2)
 summary(step_modelF_2)
 
+# Prediction and ROC Curve with Interaction Term:
 test_predictions_log_oddsStep_2 = predict(step_model_2, newdata  = (test_set),type='response')
 test_predictions_probStep_2 = plogis(test_predictions_log_oddsStep_2)
 roc_curveStep_2 = roc(response = (test_set$status), predictor = as.numeric(test_predictions_probStep_2))
@@ -688,9 +686,10 @@ auc(roc_curveStep_2)
 ```{R}
 
 # Prepare your data
-X <- as.matrix(train_set[, setdiff(names(train_set), "status")])  # Predictor variables
-y <- train_set$status  # Response variable
-
+X <- as.matrix(train_set[, setdiff(names(train_set), "status")])  
+# Predictor variables
+y <- train_set$status  
+# Response variable
 lambda_seq <- 10^seq(-2, 0, by = .001)
 
 # Use cross-validation to find the optimal lambda
@@ -717,7 +716,6 @@ roc_curve <- roc(response = as.matrix(test_set$status), predictor = as.numeric(t
 auc(roc_curve)
 
 ```
-
 
 #Elastic net 2
 ##Training without full variables
@@ -760,7 +758,6 @@ Based on the ROC and AUC, final_model2 is the best prediction.
 finalModel has more variables than final_model2 but perform the same as finalModel2
 Logistics regression without Elastic net has less AUC than final_Model2
 
-Second model diagonstics
 #final Model Diagonstics :
 ```{R}
 predicted_classes = as.numeric(test_predictions_probElastic2 >sum(clean_data2$status)/nrow(clean_data2))
